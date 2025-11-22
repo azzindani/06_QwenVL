@@ -1,0 +1,85 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qwen-vl-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qwen-vl-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qwen-vl-config
+data:
+  config.yaml: |
+    model:
+      size: "4B"
+      variant: "instruct"
+      quantization: "4bit"
+      device_map: "auto"
+
+    inference:
+      max_tokens: 4096
+      temperature: 0.7
+      batch_size: 1
+
+    server:
+      host: "0.0.0.0"
+      port: 8000
+      workers: 1
+      timeout: 300
+
+    logging:
+      level: "INFO"
+      format: "json"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qwen-vl-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: qwen-vl.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qwen-vl-service
+                port:
+                  number: 80

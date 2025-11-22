@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen-vl-service
+  labels:
+    app: qwen-vl
+    component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qwen-vl
+      component: api
+  template:
+    metadata:
+      labels:
+        app: qwen-vl
+        component: api
+    spec:
+      containers:
+        - name: qwen-vl
+          image: qwen-vl-service:latest
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 9090
+              name: metrics
+          env:
+            - name: QWEN_MODEL_SIZE
+              value: "4B"
+            - name: QWEN_QUANTIZATION
+              value: "4bit"
+            - name: QWEN_LOG_FORMAT
+              value: "json"
+            - name: QWEN_LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "2"
+              nvidia.com/gpu: "1"
+            limits:
+              memory: "16Gi"
+              cpu: "4"
+              nvidia.com/gpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - name: model-cache
+              mountPath: /root/.cache/huggingface
+            - name: storage
+              mountPath: /data/storage
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: qwen-vl-model-cache
+        - name: storage
+          persistentVolumeClaim:
+            claimName: qwen-vl-storage
+      nodeSelector:
+        nvidia.com/gpu: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qwen-vl-service
+  labels:
+    app: qwen-vl
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      name: http
+    - port: 9090
+      targetPort: 9090
+      name: metrics
+  selector:
+    app: qwen-vl
+    component: api
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qwen-vl-model-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qwen-vl-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
