@@ -136,6 +136,13 @@ class BaseTaskHandler(ABC):
         """
         import torch
 
+        # Try to use official qwen_vl_utils for proper image/video processing
+        try:
+            from qwen_vl_utils import process_vision_info
+            use_vision_utils = True
+        except ImportError:
+            use_vision_utils = False
+
         # Apply chat template
         text = self.processor.apply_chat_template(
             messages,
@@ -143,13 +150,24 @@ class BaseTaskHandler(ABC):
             add_generation_prompt=True,
         )
 
-        # Process inputs
-        inputs = self.processor(
-            text=[text],
-            images=[msg["content"][0]["image"] for msg in messages if msg["role"] == "user"],
-            return_tensors="pt",
-            padding=True,
-        )
+        # Process inputs using official pattern
+        if use_vision_utils:
+            image_inputs, video_inputs = process_vision_info(messages)
+            inputs = self.processor(
+                text=[text],
+                images=image_inputs,
+                videos=video_inputs,
+                return_tensors="pt",
+                padding=True,
+            )
+        else:
+            # Fallback for when qwen_vl_utils is not available
+            inputs = self.processor(
+                text=[text],
+                images=[msg["content"][0]["image"] for msg in messages if msg["role"] == "user"],
+                return_tensors="pt",
+                padding=True,
+            )
 
         # Move to device
         device = next(self.model.parameters()).device

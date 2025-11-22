@@ -10,7 +10,7 @@ class ModelConfig:
     """Model configuration settings."""
 
     family: Literal["qwen2.5", "qwen3"] = "qwen2.5"
-    size: str = "7B"  # 2B, 7B, 72B for Qwen2.5; 2B, 4B, 8B for Qwen3
+    size: str = "7B"  # 3B, 7B, 72B for Qwen2.5; 2B, 4B, 8B for Qwen3
     variant: Literal["instruct", "thinking"] = "instruct"
     quantization: Literal["none", "4bit", "8bit"] = "4bit"
     device_map: str = "auto"
@@ -40,7 +40,7 @@ class ModelConfig:
     def estimated_vram_gb(self) -> float:
         """Estimate VRAM usage based on model size and quantization."""
         base_vram = {
-            "2B": 4.0, "4B": 8.0, "7B": 14.0, "8B": 16.0, "72B": 144.0
+            "2B": 4.0, "3B": 6.0, "4B": 8.0, "7B": 14.0, "8B": 16.0, "72B": 144.0
         }
         quant_multiplier = {"none": 2.0, "4bit": 1.0, "8bit": 1.5}
         return base_vram.get(self.size, 8.0) * quant_multiplier[self.quantization]
