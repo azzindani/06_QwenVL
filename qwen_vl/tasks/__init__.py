@@ -15,6 +15,9 @@ from .layout import LayoutHandler
 from .ner import ENTITY_TYPES, NERHandler
 from .ocr import OCRHandler
 from .table import TableHandler
+from .form import FormHandler
+from .invoice import InvoiceHandler
+from .contract import ContractHandler
 
 __all__ = [
     "BaseTaskHandler",
@@ -28,6 +31,9 @@ __all__ = [
     "TableHandler",
     "FieldExtractionHandler",
     "NERHandler",
+    "FormHandler",
+    "InvoiceHandler",
+    "ContractHandler",
     "PRESET_SCHEMAS",
     "ENTITY_TYPES",
 ]
