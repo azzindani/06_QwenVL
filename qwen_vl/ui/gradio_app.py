@@ -84,10 +84,9 @@ class GradioApp:
     def create_interface(self) -> gr.Blocks:
         """Create the Gradio interface."""
         with gr.Blocks(
-            title="Qwen3-VL Document Processing",
-            theme=gr.themes.Soft(),
+            title="Qwen2.5-VL Document Processing",
         ) as demo:
-            gr.Markdown("# Qwen3-VL Document Processing")
+            gr.Markdown("# Qwen2.5-VL Document Processing")
             gr.Markdown("Upload an image and select a task to extract information.")
 
             with gr.Row():
