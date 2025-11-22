@@ -13,12 +13,23 @@ class ModelConfig:
     variant: Literal["instruct", "thinking"] = "instruct"
     quantization: Literal["none", "4bit", "8bit"] = "4bit"
     device_map: str = "auto"
+    local_path: Optional[str] = None  # Local model directory path
 
     @property
     def model_id(self) -> str:
-        """Get the Hugging Face model ID."""
-        variant_suffix = "" if self.variant == "instruct" else "-thinking"
-        return f"Qwen/Qwen3-VL-{self.size}-Instruct{variant_suffix}"
+        """Get the Hugging Face model ID or local path."""
+        if self.local_path:
+            return self.local_path
+
+        # Map to correct HuggingFace repository names
+        # Qwen/Qwen3-VL-2B-Instruct, Qwen/Qwen3-VL-4B-Thinking, etc.
+        variant_name = "Instruct" if self.variant == "instruct" else "Thinking"
+        return f"Qwen/Qwen3-VL-{self.size}-{variant_name}"
+
+    @property
+    def is_local(self) -> bool:
+        """Check if using local model path."""
+        return self.local_path is not None
 
     @property
     def estimated_vram_gb(self) -> float:
@@ -73,12 +84,18 @@ class Config:
 
 def load_config() -> Config:
     """Load configuration from environment variables."""
+    # Get local path (None if not set or empty)
+    local_path = os.getenv("QWEN_MODEL_PATH")
+    if local_path == "":
+        local_path = None
+
     return Config(
         model=ModelConfig(
             size=os.getenv("QWEN_MODEL_SIZE", "4B"),
             variant=os.getenv("QWEN_MODEL_VARIANT", "instruct"),
             quantization=os.getenv("QWEN_QUANTIZATION", "4bit"),
             device_map=os.getenv("QWEN_DEVICE_MAP", "auto"),
+            local_path=local_path,
         ),
         inference=InferenceConfig(
             max_new_tokens=int(os.getenv("QWEN_MAX_NEW_TOKENS", "4096")),
@@ -129,6 +146,8 @@ if __name__ == "__main__":
     print(f"  Model size: {config.model.size}")
     print(f"  Model variant: {config.model.variant}")
     print(f"  Model ID: {config.model.model_id}")
+    print(f"  Is local: {config.model.is_local}")
+    print(f"  Local path: {config.model.local_path}")
     print(f"  Quantization: {config.model.quantization}")
     print(f"  Estimated VRAM: {config.model.estimated_vram_gb} GB")
     print(f"  Max tokens: {config.inference.max_new_tokens}")
