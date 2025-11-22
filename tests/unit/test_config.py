@@ -31,11 +31,26 @@ class TestModelConfig:
     def test_model_id_generation(self):
         """Test model ID generation."""
         config = ModelConfig(size="4B", variant="instruct")
-        assert "Qwen3-VL-4B" in config.model_id
+        assert config.model_id == "Qwen/Qwen3-VL-4B-Instruct"
 
         config = ModelConfig(size="8B", variant="thinking")
-        assert "Qwen3-VL-8B" in config.model_id
-        assert "thinking" in config.model_id
+        assert config.model_id == "Qwen/Qwen3-VL-8B-Thinking"
+
+        config = ModelConfig(size="2B", variant="instruct")
+        assert config.model_id == "Qwen/Qwen3-VL-2B-Instruct"
+
+    def test_local_path(self):
+        """Test local model path configuration."""
+        # Without local path
+        config = ModelConfig()
+        assert config.is_local is False
+        assert config.local_path is None
+        assert "Qwen/" in config.model_id
+
+        # With local path
+        config = ModelConfig(local_path="/models/qwen3-vl-4b")
+        assert config.is_local is True
+        assert config.model_id == "/models/qwen3-vl-4b"
 
     def test_vram_estimation(self):
         """Test VRAM estimation for different configs."""
