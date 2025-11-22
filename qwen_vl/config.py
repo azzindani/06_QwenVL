@@ -1,0 +1,140 @@
+"""Centralized configuration management for Qwen3-VL."""
+
+import os
+from dataclasses import dataclass, field
+from typing import Literal, Optional
+
+
+@dataclass
+class ModelConfig:
+    """Model configuration settings."""
+
+    size: Literal["2B", "4B", "8B"] = "4B"
+    variant: Literal["instruct", "thinking"] = "instruct"
+    quantization: Literal["none", "4bit", "8bit"] = "4bit"
+    device_map: str = "auto"
+
+    @property
+    def model_id(self) -> str:
+        """Get the Hugging Face model ID."""
+        variant_suffix = "" if self.variant == "instruct" else "-thinking"
+        return f"Qwen/Qwen3-VL-{self.size}-Instruct{variant_suffix}"
+
+    @property
+    def estimated_vram_gb(self) -> float:
+        """Estimate VRAM usage based on model size and quantization."""
+        base_vram = {"2B": 4.0, "4B": 8.0, "8B": 16.0}
+        quant_multiplier = {"none": 2.0, "4bit": 1.0, "8bit": 1.5}
+        return base_vram[self.size] * quant_multiplier[self.quantization]
+
+
+@dataclass
+class InferenceConfig:
+    """Inference configuration settings."""
+
+    max_new_tokens: int = 4096
+    min_pixels: int = 512 * 28 * 28  # 401408
+    max_pixels: int = 2048 * 28 * 28  # 1605632
+    total_pixels: int = 20480 * 28 * 28  # For video
+    temperature: float = 0.7
+    top_p: float = 0.9
+    do_sample: bool = True
+
+
+@dataclass
+class ServerConfig:
+    """Server configuration settings."""
+
+    host: str = "0.0.0.0"
+    port: int = 7860
+    share: bool = False
+    max_file_size_mb: int = 20
+    max_video_size_mb: int = 100
+
+
+@dataclass
+class LoggingConfig:
+    """Logging configuration settings."""
+
+    level: str = "INFO"
+    format: Literal["json", "text"] = "json"
+    file_path: Optional[str] = None
+
+
+@dataclass
+class Config:
+    """Main configuration container."""
+
+    model: ModelConfig = field(default_factory=ModelConfig)
+    inference: InferenceConfig = field(default_factory=InferenceConfig)
+    server: ServerConfig = field(default_factory=ServerConfig)
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
+
+
+def load_config() -> Config:
+    """Load configuration from environment variables."""
+    return Config(
+        model=ModelConfig(
+            size=os.getenv("QWEN_MODEL_SIZE", "4B"),
+            variant=os.getenv("QWEN_MODEL_VARIANT", "instruct"),
+            quantization=os.getenv("QWEN_QUANTIZATION", "4bit"),
+            device_map=os.getenv("QWEN_DEVICE_MAP", "auto"),
+        ),
+        inference=InferenceConfig(
+            max_new_tokens=int(os.getenv("QWEN_MAX_NEW_TOKENS", "4096")),
+            min_pixels=int(os.getenv("QWEN_MIN_PIXELS", str(512 * 28 * 28))),
+            max_pixels=int(os.getenv("QWEN_MAX_PIXELS", str(2048 * 28 * 28))),
+            temperature=float(os.getenv("QWEN_TEMPERATURE", "0.7")),
+            top_p=float(os.getenv("QWEN_TOP_P", "0.9")),
+        ),
+        server=ServerConfig(
+            host=os.getenv("GRADIO_SERVER_NAME", "0.0.0.0"),
+            port=int(os.getenv("GRADIO_SERVER_PORT", "7860")),
+            share=os.getenv("GRADIO_SHARE", "false").lower() == "true",
+            max_file_size_mb=int(os.getenv("MAX_FILE_SIZE_MB", "20")),
+            max_video_size_mb=int(os.getenv("MAX_VIDEO_SIZE_MB", "100")),
+        ),
+        logging=LoggingConfig(
+            level=os.getenv("LOG_LEVEL", "INFO"),
+            format=os.getenv("LOG_FORMAT", "json"),
+            file_path=os.getenv("LOG_FILE_PATH"),
+        ),
+    )
+
+
+# Global config instance
+_config: Optional[Config] = None
+
+
+def get_config() -> Config:
+    """Get the global configuration instance."""
+    global _config
+    if _config is None:
+        _config = load_config()
+    return _config
+
+
+def reset_config() -> None:
+    """Reset the global configuration (useful for testing)."""
+    global _config
+    _config = None
+
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("CONFIG TEST")
+    print("=" * 60)
+
+    config = load_config()
+    print(f"  Model size: {config.model.size}")
+    print(f"  Model variant: {config.model.variant}")
+    print(f"  Model ID: {config.model.model_id}")
+    print(f"  Quantization: {config.model.quantization}")
+    print(f"  Estimated VRAM: {config.model.estimated_vram_gb} GB")
+    print(f"  Max tokens: {config.inference.max_new_tokens}")
+    print(f"  Server port: {config.server.port}")
+    print(f"  Log level: {config.logging.level}")
+
+    print("=" * 60)
+    print("TEST COMPLETE")
+    print("=" * 60)
