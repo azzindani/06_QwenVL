@@ -1,4 +1,4 @@
-"""Centralized configuration management for Qwen3-VL."""
+"""Centralized configuration management for Qwen VL models."""
 
 import os
 from dataclasses import dataclass, field
@@ -9,7 +9,8 @@ from typing import Literal, Optional
 class ModelConfig:
     """Model configuration settings."""
 
-    size: Literal["2B", "4B", "8B"] = "4B"
+    family: Literal["qwen2.5", "qwen3"] = "qwen2.5"
+    size: str = "7B"  # 2B, 7B, 72B for Qwen2.5; 2B, 4B, 8B for Qwen3
     variant: Literal["instruct", "thinking"] = "instruct"
     quantization: Literal["none", "4bit", "8bit"] = "4bit"
     device_map: str = "auto"
@@ -22,9 +23,13 @@ class ModelConfig:
             return self.local_path
 
         # Map to correct HuggingFace repository names
-        # Qwen/Qwen3-VL-2B-Instruct, Qwen/Qwen3-VL-4B-Thinking, etc.
-        variant_name = "Instruct" if self.variant == "instruct" else "Thinking"
-        return f"Qwen/Qwen3-VL-{self.size}-{variant_name}"
+        if self.family == "qwen2.5":
+            # Qwen/Qwen2.5-VL-2B-Instruct, Qwen/Qwen2.5-VL-7B-Instruct, etc.
+            return f"Qwen/Qwen2.5-VL-{self.size}-Instruct"
+        else:
+            # Qwen/Qwen3-VL-2B-Instruct, Qwen/Qwen3-VL-4B-Thinking, etc.
+            variant_name = "Instruct" if self.variant == "instruct" else "Thinking"
+            return f"Qwen/Qwen3-VL-{self.size}-{variant_name}"
 
     @property
     def is_local(self) -> bool:
@@ -34,9 +39,11 @@ class ModelConfig:
     @property
     def estimated_vram_gb(self) -> float:
         """Estimate VRAM usage based on model size and quantization."""
-        base_vram = {"2B": 4.0, "4B": 8.0, "8B": 16.0}
+        base_vram = {
+            "2B": 4.0, "4B": 8.0, "7B": 14.0, "8B": 16.0, "72B": 144.0
+        }
         quant_multiplier = {"none": 2.0, "4bit": 1.0, "8bit": 1.5}
-        return base_vram[self.size] * quant_multiplier[self.quantization]
+        return base_vram.get(self.size, 8.0) * quant_multiplier[self.quantization]
 
 
 @dataclass
@@ -91,7 +98,8 @@ def load_config() -> Config:
 
     return Config(
         model=ModelConfig(
-            size=os.getenv("QWEN_MODEL_SIZE", "4B"),
+            family=os.getenv("QWEN_MODEL_FAMILY", "qwen2.5"),
+            size=os.getenv("QWEN_MODEL_SIZE", "7B"),
             variant=os.getenv("QWEN_MODEL_VARIANT", "instruct"),
             quantization=os.getenv("QWEN_QUANTIZATION", "4bit"),
             device_map=os.getenv("QWEN_DEVICE_MAP", "auto"),

@@ -23,21 +23,27 @@ class TestModelConfig:
     def test_default_values(self):
         """Test default configuration values."""
         config = ModelConfig()
-        assert config.size == "4B"
+        assert config.family == "qwen2.5"
+        assert config.size == "7B"
         assert config.variant == "instruct"
         assert config.quantization == "4bit"
         assert config.device_map == "auto"
 
     def test_model_id_generation(self):
         """Test model ID generation."""
-        config = ModelConfig(size="4B", variant="instruct")
+        # Qwen2.5 models
+        config = ModelConfig(family="qwen2.5", size="7B", variant="instruct")
+        assert config.model_id == "Qwen/Qwen2.5-VL-7B-Instruct"
+
+        config = ModelConfig(family="qwen2.5", size="2B", variant="instruct")
+        assert config.model_id == "Qwen/Qwen2.5-VL-2B-Instruct"
+
+        # Qwen3 models
+        config = ModelConfig(family="qwen3", size="4B", variant="instruct")
         assert config.model_id == "Qwen/Qwen3-VL-4B-Instruct"
 
-        config = ModelConfig(size="8B", variant="thinking")
+        config = ModelConfig(family="qwen3", size="8B", variant="thinking")
         assert config.model_id == "Qwen/Qwen3-VL-8B-Thinking"
-
-        config = ModelConfig(size="2B", variant="instruct")
-        assert config.model_id == "Qwen/Qwen3-VL-2B-Instruct"
 
     def test_local_path(self):
         """Test local model path configuration."""
@@ -122,7 +128,7 @@ class TestLoadConfig:
         reset_config()
         config = load_config()
 
-        assert config.model.size == "4B"
+        assert config.model.size == "7B"
         assert config.model.variant == "instruct"
         assert config.model.quantization == "4bit"
         assert config.inference.max_new_tokens == 4096
