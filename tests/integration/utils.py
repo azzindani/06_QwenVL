@@ -11,6 +11,14 @@ def notebook_display(image, title="Image Preview"):
         title: Title to display above image
     """
     try:
+        # Check environment - avoid printing objects in non-interactive shells
+        try:
+            from IPython import get_ipython
+            if not get_ipython():
+                return
+        except ImportError:
+            return
+
         from IPython.display import display, Image as IPImage, HTML
         import io
         
