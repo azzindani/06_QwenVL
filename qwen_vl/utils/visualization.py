@@ -52,8 +52,18 @@ def draw_bounding_box(
     img = image.copy()
     draw = ImageDraw.Draw(img)
 
+    # Get coordinates
+    if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
+        coords = [int(v) for v in bbox]
+        x1, y1 = coords[0], coords[1]
+    elif isinstance(bbox, dict) and all(k in bbox for k in ["x1", "y1", "x2", "y2"]):
+        coords = [int(bbox["x1"]), int(bbox["y1"]), int(bbox["x2"]), int(bbox["y2"])]
+        x1, y1 = coords[0], coords[1]
+    else:
+        # Invalid bbox format
+        return img
+
     # Draw rectangle
-    coords = [bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]]
     draw.rectangle(coords, outline=color, width=width)
 
     # Draw label if provided
@@ -65,8 +75,8 @@ def draw_bounding_box(
         text_height = text_bbox[3] - text_bbox[1]
 
         # Position above the box
-        text_x = bbox["x1"]
-        text_y = max(0, bbox["y1"] - text_height - 4)
+        text_x = x1
+        text_y = max(0, y1 - text_height - 4)
 
         # Draw background for text
         draw.rectangle(
@@ -297,8 +307,13 @@ if __name__ == "__main__":
 
     # Test bounding box
     bbox = {"x1": 50, "y1": 50, "x2": 150, "y2": 150}
-    img = draw_bounding_box(img, bbox, label="Test", color="#FF0000")
-    print("  ✓ Single bounding box drawn")
+    img = draw_bounding_box(img, bbox, label="Test Dict", color="#FF0000")
+    print("  [OK] Single bounding box (dict) drawn")
+
+    # Test list format bbox
+    bbox_list = [160, 50, 260, 150]
+    img = draw_bounding_box(img, bbox_list, label="Test List", color="#0000FF")
+    print("  [OK] Single bounding box (list) drawn")
 
     # Test multiple boxes
     boxes = [
@@ -306,11 +321,11 @@ if __name__ == "__main__":
         {"bbox": {"x1": 50, "y1": 200, "x2": 150, "y2": 280}, "label": "Box 2"},
     ]
     img = draw_bounding_boxes(img, boxes)
-    print("  ✓ Multiple bounding boxes drawn")
+    print("  [OK] Multiple bounding boxes drawn")
 
     # Test point
     img = draw_point(img, 300, 240, color="#00FF00")
-    print("  ✓ Point drawn")
+    print("  [OK] Point drawn")
 
     # Test color palette
     for i in range(5):
