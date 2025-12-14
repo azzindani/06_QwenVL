@@ -47,6 +47,18 @@ def test_handler(handler, handler_name: str, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Result ---")
     print(result.text[:500] if len(result.text) > 500 else result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"{handler_name.lower().replace(' ', '_')}_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 10
 

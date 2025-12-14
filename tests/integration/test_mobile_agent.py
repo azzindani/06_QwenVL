@@ -153,6 +153,12 @@ def test_suggest_tap(handler, image_path: Path, task: str):
         save_path = RESULTS_DIR / f"mobile_tap_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return True
 

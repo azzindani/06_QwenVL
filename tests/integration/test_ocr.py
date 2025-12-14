@@ -95,6 +95,12 @@ def test_ocr_with_boxes(handler, image_path: Path):
         save_path = RESULTS_DIR / f"ocr_boxes_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
+        
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return True
 
@@ -120,6 +126,12 @@ def test_ocr_extract_lines(handler, image_path: Path):
         save_path = RESULTS_DIR / f"ocr_lines_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
+        
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return True
 

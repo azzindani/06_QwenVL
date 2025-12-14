@@ -112,6 +112,18 @@ def test_parse_with_layout(handler, image_path: Path):
     bbox_count = len(result.data.get('bboxes', [])) if result.data else 0
     print(f"Bounding boxes: {bbox_count}")
     
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"doc_layout_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
+    
     return True
 
 

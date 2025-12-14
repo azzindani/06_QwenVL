@@ -93,6 +93,18 @@ def test_celebrity_recognition(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Recognition Result ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_celeb_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 20
 
@@ -118,6 +130,18 @@ def test_animal_recognition(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Recognition Result ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_animal_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 10
 
@@ -143,6 +167,18 @@ def test_food_recognition(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Recognition Result ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_food_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 10
 
@@ -168,6 +204,18 @@ def test_scene_recognition(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Scene Description ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_scene_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 20
 
@@ -193,6 +241,18 @@ def test_identify_objects(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Objects Found ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_objects_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return len(result.text) > 10
 
@@ -218,6 +278,12 @@ def test_identify_landmarks(handler):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Landmarks ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"rec_landmarks_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
     
     return True
 

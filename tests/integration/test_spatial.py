@@ -92,6 +92,18 @@ def test_detect_objects(handler, image_path: Path, object_type: str = None):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Objects Detected ---")
     print(result.text[:500] if len(result.text) > 500 else result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"spatial_objects_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return True
 
@@ -116,6 +128,19 @@ def test_detect_cars(handler):
             print(f"Time: {elapsed:.2f}s")
             print(f"\n--- Cars Detected ---")
             print(result.text[:300])
+            
+            if result.visualization:
+                RESULTS_DIR.mkdir(exist_ok=True)
+                save_path = RESULTS_DIR / f"spatial_cars_{path.stem}.png"
+                result.visualization.save(save_path)
+                print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
+
             return True
     
     print("⚠️ No car images found")
@@ -142,6 +167,19 @@ def test_detect_people(handler):
             print(f"Time: {elapsed:.2f}s")
             print(f"\n--- People Detected ---")
             print(result.text[:300])
+
+            if result.visualization:
+                RESULTS_DIR.mkdir(exist_ok=True)
+                save_path = RESULTS_DIR / f"spatial_people_{path.stem}.png"
+                result.visualization.save(save_path)
+                print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
+
             return True
     
     print("⚠️ No people images found")
@@ -166,6 +204,18 @@ def test_point_to_object(handler, image_path: Path, target: str):
     print(result.text)
     if result.data:
         print(f"Data: {result.data}")
+    
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"spatial_point_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        print(f"Visualization saved: {save_path}")
+
+        try:
+            from IPython.display import display
+            display(result.visualization)
+        except ImportError:
+            pass
     
     return True
 
