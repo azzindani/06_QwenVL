@@ -1,10 +1,19 @@
-# Qwen3-VL Production Deployment
+# Qwen2.5-VL / Qwen3-VL Production Deployment
 
-A production-ready Vision-Language model service built on Qwen3-VL, featuring document processing, OCR, field extraction, and enterprise-grade inference capabilities with a Gradio UI interface.
+A production-ready Vision-Language model service built on Qwen2.5-VL and Qwen3-VL, featuring document processing, OCR, field extraction, and enterprise-grade inference capabilities with a Gradio UI interface.
 
 ---
 
 ## Model Support
+
+### Qwen2.5-VL (Currently Implemented)
+
+| Model | VRAM (4-bit) | Best For | Status |
+|-------|--------------|----------|--------|
+| **Qwen2.5-VL-3B-Instruct** | ~6GB | Fast inference, basic tasks | ✅ Tested |
+| **Qwen2.5-VL-7B-Instruct** | ~14GB | Complex documents, higher accuracy | ✅ Tested |
+
+### Qwen3-VL (Planned)
 
 | Model | VRAM (4-bit) | Best For | Variant |
 |-------|--------------|----------|---------|
@@ -167,13 +176,7 @@ qwen_vl/
 ├── ui/                          # User interface
 │   ├── __init__.py
 │   ├── gradio_app.py            # Main Gradio application
-│   ├── components/              # Reusable UI components
-│   │   ├── __init__.py
-│   │   ├── chat_panel.py        # Chat interface
-│   │   ├── file_upload.py       # File handling
-│   │   └── task_selector.py     # Task selection
-│   └── styles/                  # CSS and themes
-│       └── theme.py
+│   └── schema_builder.py        # Schema builder UI component
 │
 ├── utils/                       # Utility functions
 │   ├── __init__.py
@@ -209,10 +212,21 @@ qwen_vl/
 ├── notebooks/                   # Original notebooks (reference)
 │   └── *.ipynb
 │
-└── docs/                        # Documentation
-    ├── API.md                   # API reference
-    ├── DEPLOYMENT.md            # Deployment guide
-    └── CONFIGURATION.md         # Config reference
+├── api/                         # API layer (Phase 4)
+│   ├── __init__.py
+│   ├── endpoints.py             # FastAPI endpoints
+│   ├── batch.py                 # Batch processing
+│   ├── webhooks.py              # Webhook integration
+│   ├── storage.py               # S3/GCS storage
+│   ├── database.py              # Database connectors
+│   └── export.py                # Export functionality
+│
+└── enterprise/                  # Enterprise features (Phase 5)
+    ├── __init__.py
+    ├── auth.py                  # Authentication/authorization
+    ├── multitenancy.py          # Multi-tenant support
+    ├── monitoring.py            # Metrics and monitoring
+    └── audit.py                 # Audit logging
 ```
 
 ---
@@ -254,14 +268,14 @@ qwen_vl/
 **Goal**: Project infrastructure and model loading
 
 #### Tasks
-- [ ] Initialize directory structure
-- [ ] Create config.py with model/inference settings
-- [ ] Set up logging infrastructure (JSON format)
-- [ ] Create requirements.txt with all dependencies
-- [ ] Implement hardware_detection.py (GPU detection, VRAM check)
-- [ ] Implement model_loader.py with singleton pattern
-- [ ] Support Qwen3-VL 2B/4B/8B model selection
-- [ ] 4-bit quantization configuration
+- [x] Initialize directory structure
+- [x] Create config.py with model/inference settings
+- [x] Set up logging infrastructure (JSON format)
+- [x] Create requirements.txt with all dependencies
+- [x] Implement hardware_detection.py (GPU detection, VRAM check)
+- [x] Implement model_loader.py with singleton pattern
+- [x] Support Qwen2.5-VL 3B/7B model selection
+- [x] 4-bit quantization configuration
 
 #### Tests
 | Test | Type | Description |
@@ -271,9 +285,9 @@ qwen_vl/
 | `test_model_loader.py` | Integration | Load each model variant, verify singleton |
 
 #### Deliverables
-- Working model loader that can load any Qwen3-VL variant
-- Configuration system with environment variable support
-- Hardware detection with recommendations
+- ✅ Working model loader that can load any Qwen2.5-VL/Qwen3-VL variant
+- ✅ Configuration system with environment variable support
+- ✅ Hardware detection with recommendations
 
 ---
 
@@ -282,16 +296,16 @@ qwen_vl/
 **Goal**: Basic OCR and text extraction with Gradio UI
 
 #### Tasks
-- [ ] Create base task handler abstract class
-- [ ] Implement OCR handler (full-page, region-based)
-- [ ] Implement layout analysis handler
-- [ ] Add bounding box visualization
-- [ ] Build basic Gradio UI
-  - [ ] Image upload
-  - [ ] Task selection dropdown
+- [x] Create base task handler abstract class
+- [x] Implement OCR handler (full-page, region-based)
+- [x] Implement layout analysis handler
+- [x] Add bounding box visualization
+- [x] Build basic Gradio UI
+  - [x] Image upload
+  - [x] Task selection dropdown
   - [ ] Streaming response display
-  - [ ] Result visualization panel
-- [ ] Implement parsers (JSON from markdown, coordinates)
+  - [x] Result visualization panel
+- [x] Implement parsers (JSON from markdown, coordinates)
 
 #### Tests
 | Test | Type | Description |
@@ -303,10 +317,10 @@ qwen_vl/
 | `test_gradio_basic.py` | Integration | UI renders, file upload works |
 
 #### Deliverables
-- Working OCR with bounding boxes
-- Layout detection (headers, sections, paragraphs)
-- Gradio UI with image upload and visualization
-- Output formats: plain text, JSON with coordinates
+- ✅ Working OCR with bounding boxes
+- ✅ Layout detection (headers, sections, paragraphs)
+- ✅ Gradio UI with image upload and visualization
+- ✅ Output formats: plain text, JSON with coordinates
 
 ---
 
@@ -315,25 +329,25 @@ qwen_vl/
 **Goal**: Schema-based field extraction, tables, and NER
 
 #### Tasks
-- [ ] Implement table extraction handler
-  - [ ] Detect table boundaries
-  - [ ] Extract rows/columns to JSON
+- [x] Implement table extraction handler
+  - [x] Detect table boundaries
+  - [x] Extract rows/columns to JSON
   - [ ] Export to CSV format
-- [ ] Implement field extraction with schemas
-  - [ ] User-defined JSON schema input
-  - [ ] Extract matching fields from document
+- [x] Implement field extraction with schemas
+  - [x] User-defined JSON schema input
+  - [x] Extract matching fields from document
   - [ ] Confidence scores per field
-- [ ] Implement NER handler
-  - [ ] Person names
-  - [ ] Organizations
-  - [ ] Dates/times
-  - [ ] Monetary amounts
-  - [ ] Locations
-- [ ] Add schema definition UI in Gradio
-  - [ ] Schema builder interface
-  - [ ] Preset templates (invoice, receipt, ID)
-  - [ ] Custom field definitions
-- [ ] Format validation (dates, amounts, emails)
+- [x] Implement NER handler
+  - [x] Person names
+  - [x] Organizations
+  - [x] Dates/times
+  - [x] Monetary amounts
+  - [x] Locations
+- [x] Add schema definition UI in Gradio
+  - [x] Schema builder interface
+  - [x] Preset templates (invoice, receipt, ID)
+  - [x] Custom field definitions
+- [x] Format validation (dates, amounts, emails)
 
 #### Tests
 | Test | Type | Description |
@@ -345,10 +359,10 @@ qwen_vl/
 | `test_format_validators.py` | Unit | Date, amount, email validation |
 
 #### Deliverables
-- Table to JSON/CSV conversion
-- Schema-based field extraction
-- NER with entity categorization
-- Format validation for common types
+- ✅ Table to JSON/CSV conversion
+- ✅ Schema-based field extraction
+- ✅ NER with entity categorization
+- ✅ Format validation for common types
 
 ---
 
@@ -357,27 +371,27 @@ qwen_vl/
 **Goal**: Domain-specific document understanding
 
 #### Tasks
-- [ ] Implement form understanding handler
-  - [ ] Key-value pair detection
+- [x] Implement form understanding handler
+  - [x] Key-value pair detection
   - [ ] Checkbox/radio button state
   - [ ] Signature detection
-- [ ] Implement invoice/receipt parser
-  - [ ] Vendor information
-  - [ ] Line items with quantities/prices
+- [x] Implement invoice/receipt parser
+  - [x] Vendor information
+  - [x] Line items with quantities/prices
   - [ ] Tax, subtotal, total calculation
-  - [ ] Payment information
-- [ ] Implement contract analyzer
-  - [ ] Party identification
-  - [ ] Key dates (effective, expiration)
-  - [ ] Clause extraction
-  - [ ] Obligation identification
+  - [x] Payment information
+- [x] Implement contract analyzer
+  - [x] Party identification
+  - [x] Key dates (effective, expiration)
+  - [x] Clause extraction
+  - [x] Obligation identification
 - [ ] Add document type templates in UI
-- [ ] Multi-page document support
-  - [ ] Context merging across pages
+- [x] Multi-page document support
+  - [x] Context merging across pages
   - [ ] Document boundary detection
-- [ ] Cross-field validation
-  - [ ] Total = sum of items
-  - [ ] Date consistency
+- [x] Cross-field validation
+  - [x] Total = sum of items
+  - [x] Date consistency
 
 #### Tests
 | Test | Type | Description |
@@ -389,11 +403,11 @@ qwen_vl/
 | `test_cross_validation.py` | Unit | Field relationship validation |
 
 #### Deliverables
-- Form understanding with key-value pairs
-- Invoice/receipt structured output
-- Contract analysis with clause extraction
-- Multi-page document support
-- Cross-field validation
+- ✅ Form understanding with key-value pairs
+- ✅ Invoice/receipt structured output
+- ✅ Contract analysis with clause extraction
+- ✅ Multi-page document support
+- ✅ Cross-field validation
 
 ---
 
@@ -734,6 +748,6 @@ docker-compose up --build
 
 ## Acknowledgments
 
-- Qwen3-VL model by Alibaba Cloud
+- Qwen2.5-VL and Qwen3-VL models by Alibaba Cloud
 - Hugging Face Transformers
 - Gradio by Hugging Face

@@ -1,4 +1,4 @@
-"""Main entry point for Qwen3-VL application."""
+"""Main entry point for Qwen2.5-VL / Qwen3-VL application."""
 
 import argparse
 import sys
@@ -9,7 +9,7 @@ from qwen_vl.utils.logger import get_logger, setup_logging
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Qwen3-VL Production Service")
+    parser = argparse.ArgumentParser(description="Qwen2.5-VL / Qwen3-VL Production Service")
     parser.add_argument(
         "--check-hardware",
         action="store_true",
@@ -19,6 +19,11 @@ def main():
         "--check-config",
         action="store_true",
         help="Check configuration and exit",
+    )
+    parser.add_argument(
+        "--no-ui",
+        action="store_true",
+        help="Start without Gradio UI (for API-only mode)",
     )
 
     args = parser.parse_args()
@@ -58,16 +63,36 @@ def main():
         return 0
 
     # Start the application
-    logger.info("Starting Qwen3-VL service")
+    logger.info("Starting Qwen VL service")
     logger.info(f"Model: {config.model.model_id}")
 
-    # TODO: Launch Gradio UI (Phase 1)
-    print("Qwen3-VL service - Phase 0 complete")
-    print("Run with --check-hardware or --check-config to verify setup")
-    print("UI will be available in Phase 1")
+    if args.no_ui:
+        print("=" * 60)
+        print("Qwen VL Service - API Mode")
+        print("=" * 60)
+        print("Running without UI. Use --check-hardware or --check-config for diagnostics.")
+        print("To start Gradio UI, run without --no-ui flag.")
+        return 0
+
+    # Launch Gradio UI
+    print("=" * 60)
+    print("Qwen VL Service - Starting Gradio UI")
+    print("=" * 60)
+    print(f"Model: {config.model.model_id}")
+    print(f"Server: http://{config.server.host}:{config.server.port}")
+    print("=" * 60)
+
+    from qwen_vl.ui.gradio_app import launch_app
+
+    launch_app(
+        server_name=config.server.host,
+        server_port=config.server.port,
+        share=config.server.share,
+    )
 
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+
