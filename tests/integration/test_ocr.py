@@ -17,7 +17,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from PIL import Image
 
 ASSET_DIR = Path(__file__).parent.parent / "asset"
+
 RESULTS_DIR = Path(__file__).parent.parent / "results"
+
+
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
+
+# Specific assets for OCR testing
 
 # Specific assets for OCR testing
 OCR_SAMPLES = [
@@ -62,6 +69,9 @@ def test_ocr_basic(handler, image_path: Path):
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
     
+    # [Preview BEFORE]
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
+    
     start = time.time()
     result = handler.process(img, with_boxes=False)
     elapsed = time.time() - start
@@ -82,6 +92,9 @@ def test_ocr_with_boxes(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+
+    # [Preview BEFORE]
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, with_boxes=True)
@@ -96,11 +109,8 @@ def test_ocr_with_boxes(handler, image_path: Path):
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
         
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        # [Preview AFTER]
+        notebook_display(result.visualization, title="AFTER: Object Detection")
     
     return True
 
@@ -113,6 +123,9 @@ def test_ocr_extract_lines(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    
+    # [Preview BEFORE]
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.extract_lines(img)
@@ -127,11 +140,8 @@ def test_ocr_extract_lines(handler, image_path: Path):
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
         
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        # [Preview AFTER]
+        notebook_display(result.visualization, title="AFTER: Line Extraction")
     
     return True
 

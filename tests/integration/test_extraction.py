@@ -11,7 +11,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
 
 from PIL import Image
 
@@ -39,6 +40,7 @@ def test_handler(handler, handler_name: str, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img)
@@ -53,12 +55,7 @@ def test_handler(handler, handler_name: str, image_path: Path):
         save_path = RESULTS_DIR / f"{handler_name.lower().replace(' ', '_')}_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title=f"AFTER: {handler_name}")
     
     return len(result.text) > 10
 

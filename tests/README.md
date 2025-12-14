@@ -132,6 +132,9 @@ Results are saved to `tests/results/`:
 - Visualization images with bounding boxes
 - JSON test reports
 
+### Notebook Visualization
+All tests support inline "Before" (input) and "After" (result) visualization when run in Jupyter/Kaggle/Colab environments. This uses a robust display utility that works for both script and module execution.
+
 ---
 
 ## Troubleshooting

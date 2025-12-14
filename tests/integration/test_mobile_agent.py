@@ -12,7 +12,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
 
 from PIL import Image
 
@@ -77,6 +78,7 @@ def test_find_button(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.find_element(img, "any tappable button or icon")
@@ -97,6 +99,7 @@ def test_find_back_button(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.find_element(img, "back button or navigation arrow")
@@ -117,6 +120,7 @@ def test_describe_screen(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.describe_screen(img)
@@ -137,6 +141,7 @@ def test_suggest_tap(handler, image_path: Path, task: str):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.suggest_action(img, task=task)
@@ -153,12 +158,7 @@ def test_suggest_tap(handler, image_path: Path, task: str):
         save_path = RESULTS_DIR / f"mobile_tap_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Mobile Tap")
     
     return True
 

@@ -12,7 +12,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
 
 from PIL import Image
 
@@ -62,6 +63,7 @@ def test_qwenvl_html(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, output_format="qwenvl_html")
@@ -117,12 +119,7 @@ def test_parse_with_layout(handler, image_path: Path):
         save_path = RESULTS_DIR / f"doc_layout_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Document Layout")
     
     return True
 

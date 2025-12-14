@@ -12,7 +12,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
 
 from PIL import Image
 
@@ -62,6 +63,8 @@ def test_basic_layout(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img)
@@ -95,6 +98,7 @@ def test_detect_sections(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.detect_sections(img)
@@ -110,12 +114,7 @@ def test_detect_sections(handler, image_path: Path):
         save_path = RESULTS_DIR / f"layout_sections_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Layout Sections")
     
     return True
 
@@ -128,6 +127,7 @@ def test_reading_order(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.detect_reading_order(img)
@@ -142,12 +142,7 @@ def test_reading_order(handler, image_path: Path):
         save_path = RESULTS_DIR / f"layout_reading_order_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Reading Order")
     
     return True
 

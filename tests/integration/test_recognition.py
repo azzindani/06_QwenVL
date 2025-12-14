@@ -12,7 +12,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
 
 from PIL import Image
 
@@ -85,6 +86,7 @@ def test_celebrity_recognition(handler):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, prompt="Who is this person? Identify them if possible.")
@@ -99,12 +101,7 @@ def test_celebrity_recognition(handler):
         save_path = RESULTS_DIR / f"rec_celeb_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Celebrity Recognition")
     
     return len(result.text) > 20
 
@@ -122,6 +119,7 @@ def test_animal_recognition(handler):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, prompt="What animal is this? Identify the species.")
@@ -136,12 +134,7 @@ def test_animal_recognition(handler):
         save_path = RESULTS_DIR / f"rec_animal_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Animal Recognition")
     
     return len(result.text) > 10
 
@@ -159,6 +152,7 @@ def test_food_recognition(handler):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, prompt="What food is shown? List all dishes visible.")
@@ -173,12 +167,7 @@ def test_food_recognition(handler):
         save_path = RESULTS_DIR / f"rec_food_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Food Recognition")
     
     return len(result.text) > 10
 
@@ -196,6 +185,7 @@ def test_scene_recognition(handler):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img, prompt="Describe this scene. What kind of place is this?")
@@ -210,12 +200,7 @@ def test_scene_recognition(handler):
         save_path = RESULTS_DIR / f"rec_scene_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Scene Recognition")
     
     return len(result.text) > 20
 
@@ -233,6 +218,7 @@ def test_identify_objects(handler):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.identify_objects(img)
@@ -247,12 +233,7 @@ def test_identify_objects(handler):
         save_path = RESULTS_DIR / f"rec_objects_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Object Identification")
     
     return len(result.text) > 10
 
@@ -284,6 +265,7 @@ def test_identify_landmarks(handler):
         save_path = RESULTS_DIR / f"rec_landmarks_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
+        notebook_display(result.visualization, title="AFTER: Landmark Recognition")
     
     return True
 

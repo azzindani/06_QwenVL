@@ -19,6 +19,9 @@ from PIL import Image
 ASSET_DIR = Path(__file__).parent.parent / "asset"
 RESULTS_DIR = Path(__file__).parent.parent / "results"
 
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display
+
 # Specific assets for Spatial testing
 SPATIAL_SAMPLES = [
     "spatio_case1.jpg",           # Specific spatial case
@@ -64,6 +67,7 @@ def test_basic_spatial(handler, image_path: Path):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.process(img)
@@ -84,6 +88,7 @@ def test_detect_objects(handler, image_path: Path, object_type: str = None):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.detect_objects(img, object_type=object_type)
@@ -98,12 +103,7 @@ def test_detect_objects(handler, image_path: Path, object_type: str = None):
         save_path = RESULTS_DIR / f"spatial_objects_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Spatial Visual")
     
     return True
 
@@ -120,6 +120,7 @@ def test_detect_cars(handler):
         if path.exists():
             img = Image.open(path)
             print(f"Image: {name}")
+            notebook_display(img, title=f"BEFORE: {name}")
             
             start = time.time()
             result = handler.detect_objects(img, object_type="car")
@@ -134,12 +135,7 @@ def test_detect_cars(handler):
                 save_path = RESULTS_DIR / f"spatial_cars_{path.stem}.png"
                 result.visualization.save(save_path)
                 print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Spatial Visual")
 
             return True
     
@@ -159,6 +155,7 @@ def test_detect_people(handler):
         if path.exists():
             img = Image.open(path)
             print(f"Image: {name}")
+            notebook_display(img, title=f"BEFORE: {name}")
             
             start = time.time()
             result = handler.detect_objects(img, object_type="person")
@@ -173,12 +170,7 @@ def test_detect_people(handler):
                 save_path = RESULTS_DIR / f"spatial_people_{path.stem}.png"
                 result.visualization.save(save_path)
                 print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Spatial Visual")
 
             return True
     
@@ -194,6 +186,7 @@ def test_point_to_object(handler, image_path: Path, target: str):
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")
+    notebook_display(img, title=f"BEFORE: {image_path.name}")
     
     start = time.time()
     result = handler.point_to_object(img, target)
@@ -210,12 +203,7 @@ def test_point_to_object(handler, image_path: Path, target: str):
         save_path = RESULTS_DIR / f"spatial_point_{image_path.stem}.png"
         result.visualization.save(save_path)
         print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Spatial Visual")
     
     return True
 
