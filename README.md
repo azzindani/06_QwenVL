@@ -139,6 +139,25 @@ User Input (Text + Image/Video)
 | Usage monitoring | Requests, latency, cost tracking | 5 |
 | Audit logging | Compliance and traceability | 5 |
 
+### Available Task Handlers (14 Total)
+
+| Handler | TaskType | Key Methods | Description |
+|---------|----------|-------------|-------------|
+| `OCRHandler` | `ocr` | `process()`, `extract_lines()` | Text extraction with optional bounding boxes |
+| `LayoutHandler` | `layout` | `process()`, `detect_sections()`, `detect_reading_order()` | Document structure analysis |
+| `RecognitionHandler` | `recognition` | `process()`, `identify_objects()`, `identify_landmarks()` | Image recognition (objects, celebrities, landmarks) |
+| `SpatialHandler` | `spatial` | `process()`, `detect_objects()`, `point_to_object()` | Object detection with coordinates |
+| `VideoHandler` | `video` | `process()`, `summarize()`, `extract_key_moments()` | Video understanding and summarization |
+| `DocumentParsingHandler` | `document_parsing` | `process()`, `parse_to_html()`, `parse_with_layout()` | HTML structure extraction |
+| `TableHandler` | `table` | `process()` | Table extraction to JSON/CSV |
+| `NERHandler` | `ner` | `process()` | Named Entity Recognition |
+| `FieldExtractionHandler` | `field_extraction` | `process()` | Schema-based field extraction |
+| `FormHandler` | `form` | `process()` | Form key-value extraction |
+| `InvoiceHandler` | `invoice` | `process()` | Invoice/receipt parsing |
+| `ContractHandler` | `contract` | `process()` | Contract clause extraction |
+| `ComputerAgentHandler` | `computer_agent` | `process()`, `find_element()`, `suggest_action()` | Desktop automation assistance |
+| `MobileAgentHandler` | `mobile_agent` | `process()`, `find_element()`, `suggest_action()`, `describe_screen()` | Mobile app automation |
+
 ---
 
 ## Directory Structure

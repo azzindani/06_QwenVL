@@ -1,4 +1,4 @@
-"""Gradio UI for Qwen3-VL document processing."""
+"""Gradio UI for Qwen2.5-VL / Qwen3-VL document processing."""
 
 import logging
 from typing import Generator, List, Optional, Tuple
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class GradioApp:
-    """Gradio application for Qwen3-VL inference."""
+    """Gradio application for Qwen VL inference."""
 
     def __init__(self):
         self.model_loader = ModelLoader()
@@ -109,11 +109,10 @@ class GradioApp:
                             type="pil",
                         )
 
-                    # Task selection
                     with gr.Group():
                         gr.Markdown("### Task Settings")
                         task_dropdown = gr.Dropdown(
-                            choices=[t.value for t in [TaskType.OCR, TaskType.LAYOUT]],
+                            choices=[t.value for t in TaskType],
                             value=TaskType.OCR.value,
                             label="Task Type",
                         )
@@ -179,12 +178,11 @@ class GradioApp:
                 outputs=[text_output, image_output],
             )
 
-            # Examples
             gr.Markdown("### Quick Start")
             gr.Markdown(
                 "1. Click 'Load Model' to initialize the model\n"
-                "2. Upload an image\n"
-                "3. Select a task (OCR or Layout)\n"
+                "2. Upload an image or video\n"
+                "3. Select a task type\n"
                 "4. Click 'Process' to extract information"
             )
 

@@ -1,5 +1,6 @@
 """Base task handler abstract class."""
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
@@ -7,18 +8,33 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
+logger = logging.getLogger(__name__)
+
 
 class TaskType(str, Enum):
     """Available task types for document processing."""
 
+    # Phase 1 - Core Extraction
     OCR = "ocr"
     LAYOUT = "layout"
+    RECOGNITION = "recognition"
+    SPATIAL = "spatial"
+    VIDEO = "video"
+    DOCUMENT_PARSING = "document_parsing"
+    
+    # Phase 2 - Structured Extraction
     TABLE = "table"
     FIELD_EXTRACTION = "field_extraction"
     NER = "ner"
+    
+    # Phase 3 - Document Intelligence
     FORM = "form"
     INVOICE = "invoice"
     CONTRACT = "contract"
+    
+    # Agent Tasks
+    COMPUTER_AGENT = "computer_agent"
+    MOBILE_AGENT = "mobile_agent"
 
 
 @dataclass
@@ -136,12 +152,15 @@ class BaseTaskHandler(ABC):
         """
         import torch
 
+        logger.debug(f"Generating response: max_tokens={max_new_tokens}, temp={temperature}")
+
         # Try to use official qwen_vl_utils for proper image/video processing
         try:
             from qwen_vl_utils import process_vision_info
             use_vision_utils = True
         except ImportError:
             use_vision_utils = False
+            logger.debug("qwen_vl_utils not available, using fallback")
 
         # Apply chat template
         text = self.processor.apply_chat_template(
