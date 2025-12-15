@@ -15,6 +15,7 @@ def notebook_display(image, title="Image Preview"):
         try:
             from IPython import get_ipython
             if not get_ipython():
+                print("  [Info] Run with '%run' or import main() to see inline image previews")
                 return
         except ImportError:
             return
