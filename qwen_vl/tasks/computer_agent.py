@@ -156,6 +156,7 @@ class ComputerAgentHandler(BaseTaskHandler):
         processed_messages = prompt_builder.preprocess_fncall_messages(
             messages=messages,
             functions=[computer_use.function],
+            lang=None,
         )
         
         # Convert back to dicts for our internal generator and fix image format

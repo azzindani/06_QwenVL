@@ -147,6 +147,7 @@ class MobileAgentHandler(BaseTaskHandler):
         processed_messages = prompt_builder.preprocess_fncall_messages(
             messages=messages,
             functions=[mobile_use.function],
+            lang=None,
         )
         
         # Convert back to dicts for our internal generator and fix image format
