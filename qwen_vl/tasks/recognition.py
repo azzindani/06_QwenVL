@@ -46,7 +46,16 @@ class RecognitionHandler(BaseTaskHandler):
 
         user_prompt = prompt or "What is the main subject of this image? Describe it in detail."
 
-        messages = self._build_messages(img, user_prompt)
+        # Set default pixel limits to avoid OOM for large images
+        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
+        max_pixels = kwargs.get("max_pixels", 1024 * 28 * 28)
+
+        messages = self._build_messages(
+            img, 
+            user_prompt,
+            min_pixels=min_pixels,
+            max_pixels=max_pixels
+        )
         response = self._generate(messages, **kwargs)
 
         return TaskResult(

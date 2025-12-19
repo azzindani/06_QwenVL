@@ -59,7 +59,16 @@ class OCRHandler(BaseTaskHandler):
         """Extract text without bounding boxes."""
         user_prompt = prompt or "Extract all text from this image. Preserve the layout and structure."
 
-        messages = self._build_messages(image, user_prompt)
+        # Set default pixel limits to avoid OOM for large images
+        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
+        max_pixels = kwargs.get("max_pixels", 1280 * 28 * 28)
+        
+        messages = self._build_messages(
+            image, 
+            user_prompt,
+            min_pixels=min_pixels,
+            max_pixels=max_pixels
+        )
         response = self._generate(messages, **kwargs)
 
         return TaskResult(
@@ -83,7 +92,16 @@ class OCRHandler(BaseTaskHandler):
             '```'
         )
 
-        messages = self._build_messages(image, user_prompt)
+        # Set default pixel limits to avoid OOM for large images
+        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
+        max_pixels = kwargs.get("max_pixels", 1280 * 28 * 28)
+
+        messages = self._build_messages(
+            image, 
+            user_prompt,
+            min_pixels=min_pixels,
+            max_pixels=max_pixels
+        )
         response = self._generate(messages, **kwargs)
 
         # Parse bounding boxes
@@ -126,7 +144,16 @@ class OCRHandler(BaseTaskHandler):
             '```'
         )
 
-        messages = self._build_messages(img, prompt)
+        # Set default pixel limits to avoid OOM for large images
+        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
+        max_pixels = kwargs.get("max_pixels", 1280 * 28 * 28)
+
+        messages = self._build_messages(
+            img, 
+            prompt,
+            min_pixels=min_pixels,
+            max_pixels=max_pixels
+        )
         response = self._generate(messages, **kwargs)
 
         boxes = parse_coordinates(response)

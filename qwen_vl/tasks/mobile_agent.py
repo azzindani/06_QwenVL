@@ -131,6 +131,10 @@ class MobileAgentHandler(BaseTaskHandler):
         )
         prompt_builder = NousFnCallPrompt()
         
+        # Set default pixel limits to avoid OOM for large screenshots
+        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
+        max_pixels = kwargs.get("max_pixels", 1024 * 28 * 28)
+
         # Build standard Message objects
         messages = [
             Message(role="system", content=[ContentItem(text=self.system_prompt)]),
@@ -138,7 +142,11 @@ class MobileAgentHandler(BaseTaskHandler):
                 role="user",
                 content=[
                     ContentItem(text=user_prompt),
-                    ContentItem(image="image_placeholder"), # Use placeholder to avoid validation error
+                    ContentItem(
+                        image="image_placeholder",
+                        min_pixels=min_pixels,
+                        max_pixels=max_pixels
+                    ), # Use placeholder to avoid validation error
                 ],
             ),
         ]

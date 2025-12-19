@@ -107,6 +107,8 @@ class BaseTaskHandler(ABC):
         self,
         image: Image.Image,
         user_prompt: str,
+        min_pixels: Optional[int] = None,
+        max_pixels: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         Build chat messages for the model.
@@ -114,10 +116,18 @@ class BaseTaskHandler(ABC):
         Args:
             image: PIL Image
             user_prompt: User's prompt/question
+            min_pixels: Minimum pixels for processing
+            max_pixels: Maximum pixels for processing
 
         Returns:
             List of message dicts for chat template
         """
+        image_content = {"type": "image", "image": image}
+        if min_pixels:
+            image_content["min_pixels"] = min_pixels
+        if max_pixels:
+            image_content["max_pixels"] = max_pixels
+
         messages = [
             {
                 "role": "system",
@@ -126,7 +136,7 @@ class BaseTaskHandler(ABC):
             {
                 "role": "user",
                 "content": [
-                    {"type": "image", "image": image},
+                    image_content,
                     {"type": "text", "text": user_prompt},
                 ],
             },
