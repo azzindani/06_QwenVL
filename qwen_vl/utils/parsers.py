@@ -123,6 +123,53 @@ def parse_bounding_box(text: str) -> Optional[Dict[str, int]]:
     return None
 
 
+def parse_spatial_output(text: str) -> List[Dict[str, Any]]:
+    """
+    Parse spatial output (bounding boxes) in various formats.
+    
+    Supports:
+    1. JSON array of objects: [{"label": "...", "bbox_2d": [x1, y1, x2, y2]}]
+    2. Plain text: "x1,y1,x2,y2 label" (one per line)
+    
+    Args:
+        text: Model response text
+        
+    Returns:
+        List of dicts with 'label' and 'bbox_2d' keys
+    """
+    results = []
+    
+    # Try JSON array first
+    json_array = parse_json_array_from_markdown(text)
+    if json_array:
+        for item in json_array:
+            if "bbox_2d" in item:
+                results.append(item)
+            elif "bbox" in item:
+                # Rename for consistency
+                item["bbox_2d"] = item.pop("bbox")
+                results.append(item)
+        if results:
+            return results
+
+    # Try plain text format: "x1,y1,x2,y2 label"
+    # Match lines like: 100,200,300,400 cat
+    lines = text.strip().splitlines()
+    for line in lines:
+        line = line.strip()
+        # Look for 4 integers followed by text
+        match = re.match(r"(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\s*(.*)", line)
+        if match:
+            coords = [int(match.group(i)) for i in range(1, 5)]
+            label = match.group(5).strip()
+            results.append({
+                "label": label or "object",
+                "bbox_2d": coords
+            })
+            
+    return results
+
+
 def parse_coordinates(text: str) -> List[Dict[str, Any]]:
     """
     Parse multiple bounding boxes with labels from text.

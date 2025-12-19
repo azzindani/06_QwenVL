@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from PIL import Image, ImageColor, ImageDraw, ImageFont
 
-from ..utils.parsers import parse_json_from_markdown
+from ..utils.parsers import parse_json_from_markdown, parse_spatial_output
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
 logger = logging.getLogger(__name__)
@@ -72,19 +72,8 @@ def draw_spatial_boxes(
         "brown", "cyan", "magenta", "lime", "navy", "teal", "coral",
     ]
 
-    # Parse JSON from markdown
-    json_str = parse_json_from_markdown(bounding_boxes)
-    
-    try:
-        boxes = ast.literal_eval(json_str) if json_str else []
-    except Exception:
-        try:
-            # Try to fix incomplete JSON
-            end_idx = json_str.rfind('"}') + len('"}')
-            truncated = json_str[:end_idx] + "]"
-            boxes = ast.literal_eval(truncated)
-        except Exception:
-            boxes = []
+    # Parse boxes using robust utility
+    boxes = parse_spatial_output(bounding_boxes)
 
     # Try to load a font, fall back to default
     try:
@@ -211,9 +200,15 @@ class SpatialHandler(BaseTaskHandler):
         messages = self._build_messages(img, user_prompt)
         response = self._generate(messages, **kwargs)
 
+        # Visualize if JSON boxes found
+        vis_image = None
+        if self.last_input_width and self.last_input_height:
+            vis_image = draw_spatial_boxes(img, response, self.last_input_width, self.last_input_height)
+
         return TaskResult(
             text=response,
-            metadata={"mode": "detection"},
+            visualization=vis_image,
+            metadata={"mode": "detection", "input_width": self.last_input_width, "input_height": self.last_input_height},
         )
 
     def detect_objects(
@@ -249,11 +244,20 @@ class SpatialHandler(BaseTaskHandler):
         messages = self._build_messages(img, prompt)
         response = self._generate(messages, **kwargs)
 
-        # Note: Visualization requires input dimensions from the model
-        # which would be available during actual inference
+        # Visualize if JSON boxes found
+        vis_image = None
+        if self.last_input_width and self.last_input_height:
+            vis_image = draw_spatial_boxes(img, response, self.last_input_width, self.last_input_height)
+
         return TaskResult(
             text=response,
-            metadata={"mode": "object_detection", "object_type": object_type},
+            visualization=vis_image,
+            metadata={
+                "mode": "object_detection", 
+                "object_type": object_type,
+                "input_width": self.last_input_width,
+                "input_height": self.last_input_height
+            },
         )
 
     def point_to_object(
@@ -284,11 +288,22 @@ class SpatialHandler(BaseTaskHandler):
 
         # Parse XML response
         points_data = decode_xml_points(response)
+        
+        # Visualize points
+        vis_image = None
+        if points_data and self.last_input_width and self.last_input_height:
+            vis_image = draw_points(img, points_data, self.last_input_width, self.last_input_height)
 
         return TaskResult(
             text=response,
             data=points_data,
-            metadata={"mode": "point_to_object", "target": object_description},
+            visualization=vis_image,
+            metadata={
+                "mode": "point_to_object", 
+                "target": object_description,
+                "input_width": self.last_input_width,
+                "input_height": self.last_input_height
+            },
         )
 
 

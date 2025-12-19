@@ -6,6 +6,7 @@ bitsandbytes>=0.42.0
 
 # Qwen VL specific
 qwen-vl-utils>=0.0.2
+qwen_agent
 
 # Image/Video processing
 pillow>=10.0.0

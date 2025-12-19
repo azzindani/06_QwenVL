@@ -1,12 +1,15 @@
-"""Mobile agent task handler for mobile app automation."""
-
-import json
-import logging
-from typing import Any, Dict, List, Optional, Union
-
-from PIL import Image, ImageColor, ImageDraw
-
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
+from ..utils.agent_function_call import MobileUse
+
+try:
+    from qwen_agent.llm.fncall_prompts.nous_fncall_prompt import (
+        NousFnCallPrompt,
+        Message,
+        ContentItem,
+    )
+    HAS_QWEN_AGENT = True
+except ImportError:
+    HAS_QWEN_AGENT = False
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +66,7 @@ def parse_mobile_action(response: str) -> Optional[Dict[str, Any]]:
     """
     try:
         if "<tool_call>" in response and "</tool_call>" in response:
-            tool_content = response.split("<tool_call>\n")[1].split("\n</tool_call>")[0]
+            tool_content = response.split("<tool_call>")[1].split("</tool_call>")[0].strip()
             return json.loads(tool_content)
     except (IndexError, json.JSONDecodeError):
         pass
@@ -80,11 +83,68 @@ class MobileAgentHandler(BaseTaskHandler):
 
     @property
     def system_prompt(self) -> str:
-        return (
-            "You are a helpful mobile assistant. Analyze mobile screenshots and help users "
-            "interact with their mobile device by identifying UI elements and suggesting actions. "
-            "When an action is needed, describe what should be tapped, swiped, or typed."
+        return "You are a helpful assistant that can use a mobile device to solve tasks."
+
+    def _build_agent_messages(
+        self,
+        image: Image.Image,
+        user_prompt: str,
+    ) -> List[Dict[str, Any]]:
+        """Build messages using qwen_agent if available."""
+        if not HAS_QWEN_AGENT:
+            # Fallback to manual prompt construction
+            system_p = (
+                f"{self.system_prompt}\n\n"
+                "## Tools\n"
+                "You have access to the following tool:\n"
+                "### mobile_use\n"
+                "Parameters:\n"
+                "- action: (required, string) One of: 'click', 'swipe', 'type', 'wait', 'open', 'back'.\n"
+                "- coordinate: (optional, array[integer]) [x, y] coordinates for click. Scale is 0-1000.\n"
+                "- text: (optional, string) The text to type.\n"
+                "- element: (optional, string) A description of the element.\n\n"
+                "When you want to perform an action, you MUST use the following format:\n"
+                "<tool_call>\n"
+                "{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"...\", \"coordinate\": [...], \"element\": \"...\"}}\n"
+                "</tool_call>"
+            )
+            return [
+                {"role": "system", "content": system_p},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "image": image},
+                        {"type": "text", "text": user_prompt},
+                    ],
+                },
+            ]
+
+        # Use qwen_agent for robust prompt construction
+        mobile_use = MobileUse(
+            cfg={"display_width_px": image.width, "display_height_px": image.height}
         )
+        prompt_builder = NousFnCallPrompt()
+        
+        # Build standard Message objects
+        messages = [
+            Message(role="system", content=[ContentItem(text=self.system_prompt)]),
+            Message(
+                role="user",
+                content=[
+                    ContentItem(text=user_prompt),
+                    ContentItem(image=image),
+                ],
+            ),
+        ]
+        
+        # Preprocess with tool schemas
+        processed_messages = prompt_builder.preprocess_fncall_messages(
+            messages=messages,
+            functions=[mobile_use.function],
+        )
+        
+        # Convert back to dicts for our internal generator
+        return [msg.model_dump() for msg in processed_messages]
 
     def process(
         self,
@@ -93,7 +153,7 @@ class MobileAgentHandler(BaseTaskHandler):
         **kwargs,
     ) -> TaskResult:
         """
-        Analyze a mobile screenshot and suggest actions.
+        Analyze a mobile screenshot and suggest actions with tool calls.
 
         Args:
             image: Screenshot path or PIL Image
@@ -104,26 +164,32 @@ class MobileAgentHandler(BaseTaskHandler):
         """
         img = self._load_image(image)
 
-        user_prompt = prompt or "What can you see on this mobile screen? Describe the main elements."
+        user_prompt = prompt or "What can you see on this mobile screen? If a task is implied, suggest the next step using a tool call."
 
-        messages = self._build_messages(img, user_prompt)
+        messages = self._build_agent_messages(img, user_prompt)
         response = self._generate(messages, **kwargs)
 
         # Try to parse any action
         action = parse_mobile_action(response)
 
-        # Visualize tap if present
+        # Visualize action if present
         vis_image = None
         if action and "arguments" in action:
             args = action["arguments"]
-            if "coordinate" in args and args.get("action") == "click":
+            # Check for coordinates in either 'coordinate' or 'point'
+            coord = args.get("coordinate") or args.get("point")
+            
+            if coord and isinstance(coord, list) and len(coord) == 2:
+                # Some models might return click even if not explicitly in action name
+                vis_image = draw_touch_point(img, coord, color="green")
+            elif args.get("action") == "click" and "coordinate" in args:
                 vis_image = draw_touch_point(img, args["coordinate"], color="green")
 
         return TaskResult(
             text=response,
             data=action,
             visualization=vis_image,
-            metadata={"mode": "mobile_agent"},
+            metadata={"mode": "mobile_agent", "has_tool_call": action is not None},
         )
 
     def find_element(
@@ -146,15 +212,25 @@ class MobileAgentHandler(BaseTaskHandler):
 
         prompt = (
             f"Find the {element_description} on this mobile screen. "
-            f"Describe its location and what gesture would interact with it."
+            f"Describe its location and provide a tool call to 'click' it if found."
         )
 
-        messages = self._build_messages(img, prompt)
+        messages = self._build_agent_messages(img, prompt)
         response = self._generate(messages, **kwargs)
+
+        action = parse_mobile_action(response)
+        vis_image = None
+        if action and "arguments" in action:
+            args = action["arguments"]
+            coord = args.get("coordinate") or args.get("point")
+            if coord and isinstance(coord, list) and len(coord) == 2:
+                vis_image = draw_touch_point(img, coord, color="green")
 
         return TaskResult(
             text=response,
-            metadata={"mode": "find_element", "target": element_description},
+            data=action,
+            visualization=vis_image,
+            metadata={"mode": "find_element", "target": element_description, "has_tool_call": action is not None},
         )
 
     def suggest_action(
@@ -180,12 +256,13 @@ class MobileAgentHandler(BaseTaskHandler):
         if history:
             prompt = (
                 f"The user query: {task}\n"
-                f"Task progress (You have done the following operation on the current device): {history}"
+                f"Task progress (You have done the following operation on the current device): {history}\n"
+                "What is the next action? Suggest it using a tool call."
             )
         else:
-            prompt = f"The user query: {task}\n\nWhat is the first action to complete this task?"
+            prompt = f"The user query: {task}\n\nWhat is the first action to complete this task? Suggest it using a tool call."
 
-        messages = self._build_messages(img, prompt)
+        messages = self._build_agent_messages(img, prompt)
         response = self._generate(messages, **kwargs)
 
         action = parse_mobile_action(response)
@@ -194,14 +271,17 @@ class MobileAgentHandler(BaseTaskHandler):
         vis_image = None
         if action and "arguments" in action:
             args = action["arguments"]
-            if "coordinate" in args and args.get("action") == "click":
-                vis_image = draw_touch_point(img, args["coordinate"])
+            coord = args.get("coordinate") or args.get("point")
+            if coord and isinstance(coord, list) and len(coord) == 2:
+                vis_image = draw_touch_point(img, coord, color="green")
+            elif args.get("action") == "click" and "coordinate" in args:
+                vis_image = draw_touch_point(img, args["coordinate"], color="green")
 
         return TaskResult(
             text=response,
             data=action,
             visualization=vis_image,
-            metadata={"mode": "suggest_action", "task": task},
+            metadata={"mode": "suggest_action", "task": task, "has_tool_call": action is not None},
         )
 
     def describe_screen(

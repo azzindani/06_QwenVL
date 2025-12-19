@@ -62,6 +62,8 @@ class BaseTaskHandler(ABC):
         """
         self.model = model
         self.processor = processor
+        self.last_input_height = None
+        self.last_input_width = None
 
     @property
     @abstractmethod
@@ -191,6 +193,13 @@ class BaseTaskHandler(ABC):
         # Move to device
         device = next(self.model.parameters()).device
         inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        # Store input dimensions for spatial scaling
+        if "image_grid_thw" in inputs:
+            # grid_thw format: [t, h, w]
+            self.last_input_height = int(inputs["image_grid_thw"][0][1] * 14)
+            self.last_input_width = int(inputs["image_grid_thw"][0][2] * 14)
+            logger.debug(f"Stored input dimensions: {self.last_input_width}x{self.last_input_height}")
 
         # Generate
         with torch.no_grad():
