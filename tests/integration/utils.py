@@ -14,41 +14,49 @@ def is_oom_error(e):
     msg = str(e).lower()
     return "out of memory" in msg or "failed to allocate" in msg or "cuda out of memory" in msg
 
-def notebook_display(image, title="Image Preview"):
+def notebook_display(content, title="Output Preview", is_html=False):
     """
-    Robust image display for Notebook environments (Colab, Kaggle).
-    Uses raw PNG data to ensure inline rendering.
+    Robust display for Notebook environments (Colab, Kaggle).
+    Supports images, HTML, and text.
     
     Args:
-        image: PIL Image, str path, or Path object
-        title: Title to display above image
+        content: PIL Image, str path, Path object, or HTML string
+        title: Title to display above content
+        is_html: If True, treat content as raw HTML
     """
     try:
-        # Check environment - avoid printing objects in non-interactive shells
-        try:
-            from IPython import get_ipython
-            if not get_ipython():
-                print("  [Info] Run with '%run' or import main() to see inline image previews")
-                return
-        except ImportError:
+        from IPython import get_ipython
+        if not get_ipython():
             return
+    except ImportError:
+        return
 
+    try:
         from IPython.display import display, Image as IPImage, HTML
         import io
         
         # Add a title/separator
-        display(HTML(f"<strong>[{title}]</strong>"))
+        display(HTML(f"<div style='margin-top: 10px; border-top: 2px solid #ddd; padding-top: 5px;'><strong>[{title}]</strong></div>"))
         
+        # Handle HTML
+        if is_html:
+            display(HTML(f"<div style='border: 1px solid #eee; padding: 10px; margin-bottom: 10px; overflow-x: auto;'>{content}</div>"))
+            return
+
         # Handle Path/String
-        if isinstance(image, (str, Path)):
-            display(IPImage(filename=str(image), width=600))
+        if isinstance(content, (str, Path)) and not is_html:
+            display(IPImage(filename=str(content), width=600))
             
         # Handle PIL Image
-        elif hasattr(image, 'save'):
+        elif hasattr(content, 'save'):
             # Convert PIL to raw PNG bytes
             b = io.BytesIO()
-            image.save(b, format='PNG')
+            content.save(b, format='PNG')
             display(IPImage(data=b.getvalue(), width=600))
+        
+        # Fallback for text if needed (though print is usually fine)
+        elif isinstance(content, str):
+            print(content)
             
-    except ImportError:
-        pass  # Not in a notebook environment
+    except Exception as e:
+        print(f"Error in notebook_display: {e}")

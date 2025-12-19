@@ -57,7 +57,7 @@ def test_handler(handler, handler_name: str, image_path: Path):
     
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Result ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
 
     if result.visualization:
         RESULTS_DIR.mkdir(exist_ok=True)
@@ -116,7 +116,7 @@ def main():
                         result = handler.process(img, schema={"fields": [{"name": "title", "type": "text"}]})
                         elapsed = time.time() - start
                         print(f"Time: {elapsed:.2f}s")
-                        print(f"Result: {result.text[:200]}...")
+                        print(f"Result: {result.text}")
                         results.append((f"{name} - {test_image.name}", len(result.text) > 5))
                     except Exception as e:
                         if is_oom_error(e):

@@ -77,7 +77,10 @@ def test_ocr_basic(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"Output length: {len(result.text)} chars")
     print(f"\n--- Extracted Text ---")
-    print(result.text[:500] + "..." if len(result.text) > 500 else result.text)
+    print(result.text)
+
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: OCR Basic")
     
     return len(result.text) > 10
 

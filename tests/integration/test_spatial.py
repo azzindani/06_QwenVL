@@ -59,7 +59,10 @@ def test_basic_spatial(handler, image_path: Path):
     
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Detection Result ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
+
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Spatial Detection")
     
     return len(result.text) > 10
 
@@ -80,7 +83,7 @@ def test_detect_objects(handler, image_path: Path, object_type: str = None):
     
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Objects Detected ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
 
     if result.visualization:
         RESULTS_DIR.mkdir(exist_ok=True)
@@ -116,7 +119,7 @@ def test_detect_cars(handler):
         
         print(f"Time: {elapsed:.2f}s")
         print(f"\n--- Cars Detected ---")
-        print(result.text[:300])
+        print(result.text)
         
         if result.visualization:
             RESULTS_DIR.mkdir(exist_ok=True)
@@ -154,7 +157,7 @@ def test_detect_people(handler):
         
         print(f"Time: {elapsed:.2f}s")
         print(f"\n--- People Detected ---")
-        print(result.text[:300])
+        print(result.text)
 
         if result.visualization:
             RESULTS_DIR.mkdir(exist_ok=True)

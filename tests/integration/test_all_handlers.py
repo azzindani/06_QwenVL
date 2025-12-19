@@ -131,9 +131,7 @@ def print_result(test: TestCase, success: bool, elapsed: float, details: str = "
     status = "✅" if success else "❌"
     print(f"  {status} {test.handler_name}.{test.method_name}() | {elapsed:.2f}s")
     if verbose and details:
-        truncated = details[:300] + "..." if len(details) > 300 else details
-        for line in truncated.split("\n")[:3]:
-            print(f"      {line}")
+        print(f"      {details}")
 
 
 class ComprehensiveTest:
@@ -265,7 +263,7 @@ class ComprehensiveTest:
             result["asset"] = asset.name
             
             if self.verbose:
-                result["output_preview"] = output.text[:200] if hasattr(output, "text") else ""
+                result["output_preview"] = output.text if hasattr(output, "text") else ""
             
         except Exception as e:
             result["error"] = str(e)

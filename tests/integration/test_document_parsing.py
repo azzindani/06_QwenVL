@@ -70,8 +70,14 @@ def test_qwenvl_html(handler, image_path: Path):
     
     print(f"Time: {elapsed:.2f}s")
     print(f"Elements found: {result.metadata.get('element_count', 0)}")
-    print(f"\n--- HTML Output (first 500 chars) ---")
-    print(result.text[:500])
+    print(f"\n--- HTML Output ---")
+    print(result.text)
+    
+    # Preview HTML in notebook
+    notebook_display(result.text, title="AFTER: Document HTML Preview", is_html=True)
+    
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Document Visualization")
     
     return len(result.text) > 20
 
@@ -90,8 +96,14 @@ def test_parse_to_html(handler, image_path: Path):
     elapsed = time.time() - start
     
     print(f"Time: {elapsed:.2f}s")
-    print(f"\n--- Clean HTML (first 500 chars) ---")
-    print(result.text[:500])
+    print(f"\n--- Clean HTML ---")
+    print(result.text)
+    
+    # Preview HTML in notebook
+    notebook_display(result.text, title="AFTER: Clean HTML Preview", is_html=True)
+    
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Document Analysis")
     
     return len(result.text) > 10
 

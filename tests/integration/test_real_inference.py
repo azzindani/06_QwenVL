@@ -57,9 +57,6 @@ def print_result(name: str, success: bool, time_sec: float, details: str = ""):
     status = "✅ PASS" if success else "❌ FAIL"
     print(f"  {status} | {name} | {time_sec:.2f}s")
     if details:
-        # Truncate long details
-        if len(details) > 200:
-            details = details[:200] + "..."
         print(f"         └─ {details}")
 
 
@@ -120,7 +117,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 10
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -161,7 +158,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 10
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -202,7 +199,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 20
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -242,7 +239,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 10
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -323,7 +320,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 20
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -363,7 +360,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 10
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({
@@ -403,7 +400,7 @@ class RealInferenceTest:
                 elapsed = time.time() - start
                 
                 success = len(result.text) > 10
-                details = result.text[:100].replace("\n", " ")
+                details = result.text.replace("\n", " ")
                 print_result(asset.name, success, elapsed, details)
                 
                 results.append({

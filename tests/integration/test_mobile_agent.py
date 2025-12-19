@@ -69,6 +69,9 @@ def test_mobile_screen(handler, image_path: Path):
     print(f"\n--- Mobile Analysis ---")
     print(result.text)
     
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Mobile Screen Analysis")
+    
     return len(result.text) > 20
 
 
@@ -89,6 +92,12 @@ def test_find_button(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Button Found ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"mobile_button_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        notebook_display(result.visualization, title="AFTER: Find Button")
     
     return True
 
@@ -110,6 +119,12 @@ def test_find_back_button(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Back Button ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"mobile_back_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        notebook_display(result.visualization, title="AFTER: Find Back Button")
     
     return True
 
@@ -131,6 +146,9 @@ def test_describe_screen(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Screen Description ---")
     print(result.text)
+    
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Describe Screen")
     
     return len(result.text) > 50
 

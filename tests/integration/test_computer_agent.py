@@ -71,6 +71,9 @@ def test_screen_analysis(handler, image_path: Path):
     print(f"\n--- Screen Analysis ---")
     print(result.text)
     
+    if result.visualization:
+        notebook_display(result.visualization, title="AFTER: Screen Analysis")
+    
     return len(result.text) > 20
 
 
@@ -90,6 +93,12 @@ def test_find_button(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Button Found ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"computer_button_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        notebook_display(result.visualization, title="AFTER: Find Button")
     
     return True
 
@@ -111,6 +120,12 @@ def test_find_text_input(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Text Input Found ---")
     print(result.text)
+
+    if result.visualization:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        save_path = RESULTS_DIR / f"computer_input_{image_path.stem}.png"
+        result.visualization.save(save_path)
+        notebook_display(result.visualization, title="AFTER: Find Text Input")
     
     return True
 

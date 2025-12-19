@@ -241,7 +241,7 @@ def test_identify_objects(handler):
         
     success_count = 0
     # Process max 3 samples to avoid taking too long
-    for image_path in samples[:3]:
+    for image_path in samples:
         img = Image.open(image_path)
         print(f"Image: {image_path.name}")
         notebook_display(img, title=f"BEFORE: {image_path.name}")
@@ -273,10 +273,12 @@ def test_identify_landmarks(handler):
     print("TEST: Identify Landmarks")
     print(f"{'='*60}")
     
-    image_path = get_sample("scene")
-    if not image_path:
+    samples = get_samples("scene")
+    if not samples:
         print("⚠️ No scene sample found, skipping")
         return None
+    
+    image_path = samples[0]
     
     img = Image.open(image_path)
     print(f"Image: {image_path.name}")

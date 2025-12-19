@@ -72,19 +72,10 @@ def test_basic_layout(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"Elements: {result.metadata.get('element_count', 0)}")
     print(f"\n--- Layout Analysis ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
     
     if result.visualization:
-        RESULTS_DIR.mkdir(exist_ok=True)
-        save_path = RESULTS_DIR / f"layout_{image_path.stem}.png"
-        result.visualization.save(save_path)
-        print(f"Visualization saved: {save_path}")
-
-        try:
-            from IPython.display import display
-            display(result.visualization)
-        except ImportError:
-            pass
+        notebook_display(result.visualization, title="AFTER: Basic Layout")
     
     return len(result.text) > 10
 
@@ -106,7 +97,7 @@ def test_detect_sections(handler, image_path: Path):
     print(f"Time: {elapsed:.2f}s")
     print(f"Sections: {result.metadata.get('section_count', 0)}")
     print(f"\n--- Sections ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
 
     if result.visualization:
         RESULTS_DIR.mkdir(exist_ok=True)
@@ -134,7 +125,7 @@ def test_reading_order(handler, image_path: Path):
     
     print(f"Time: {elapsed:.2f}s")
     print(f"\n--- Reading Order ---")
-    print(result.text[:500] if len(result.text) > 500 else result.text)
+    print(result.text)
 
     if result.visualization:
         RESULTS_DIR.mkdir(exist_ok=True)
