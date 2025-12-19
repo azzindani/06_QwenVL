@@ -153,19 +153,9 @@ class ModelLoader:
             del self._loaded_model.processor
             self._loaded_model = None
 
-            # Force garbage collection
-            import gc
-
-            gc.collect()
-
-            # Clear CUDA cache if available
-            try:
-                import torch
-
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-            except ImportError:
-                pass
+            # Force memory cleanup
+            from ..utils.memory import cleanup_memory
+            cleanup_memory()
 
             logger.info("Model unloaded")
 

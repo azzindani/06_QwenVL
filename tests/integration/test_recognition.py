@@ -13,7 +13,8 @@ import time
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
-from utils import notebook_display, is_oom_error
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display, is_oom_error, cleanup_memory
 
 from PIL import Image
 
@@ -108,6 +109,8 @@ def test_celebrity_recognition(handler):
         
         if len(result.text) > 20:
             success_count += 1
+            
+        cleanup_memory()
 
     return success_count > 0
 
@@ -147,6 +150,8 @@ def test_animal_recognition(handler):
         if len(result.text) > 10:
             success_count += 1
             
+        cleanup_memory()
+            
     return success_count > 0
 
 
@@ -183,6 +188,7 @@ def test_food_recognition(handler):
         
         if len(result.text) > 10:
             success_count += 1
+        cleanup_memory()
     return success_count > 0
 
 
@@ -219,6 +225,7 @@ def test_scene_recognition(handler):
         
         if len(result.text) > 20:
             success_count += 1
+        cleanup_memory()
     return success_count > 0
 
 
@@ -256,6 +263,7 @@ def test_identify_objects(handler):
         
         if len(result.text) > 10:
             success_count += 1
+        cleanup_memory()
     return success_count > 0
 
 
@@ -343,8 +351,11 @@ def main():
         if is_oom_error(e):
             print("⚠️ OOM during test execution. Passing.")
             results.append(("OOM Bypass", True))
+            cleanup_memory()
         else:
             raise e
+    
+    cleanup_memory()
     
     # Summary
     print(f"\n{'='*60}")

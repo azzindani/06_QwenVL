@@ -9,6 +9,7 @@ from PIL import Image
 from ..config import get_config
 from ..core.model_loader import ModelLoader
 from ..tasks import TaskType, get_handler, list_handlers
+from ..utils.memory import cleanup_memory
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +76,12 @@ class GradioApp:
             else:
                 result = handler.process(image, **kwargs)
 
-            return result.text, result.visualization
+            text_res, vis_res = result.text, result.visualization
+            cleanup_memory()
+            return text_res, vis_res
 
         except Exception as e:
+            cleanup_memory()
             logger.error(f"Processing failed: {e}")
             return f"Error: {e}", None
 

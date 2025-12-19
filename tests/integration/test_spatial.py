@@ -21,7 +21,8 @@ RESULTS_DIR = Path(__file__).parent.parent / "results"
 
 sys.path.append(str(Path(__file__).parent))
 sys.path.append(str(Path(__file__).parent))
-from utils import notebook_display, is_oom_error
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display, is_oom_error, cleanup_memory
 
 # Specific assets for Spatial testing
 def get_all_samples(pattern):
@@ -123,6 +124,8 @@ def test_detect_cars(handler):
             result.visualization.save(save_path)
             print(f"Visualization saved: {save_path}")
             notebook_display(result.visualization, title="AFTER: Spatial Visual")
+        
+        cleanup_memory()
 
     return True
 
@@ -159,6 +162,8 @@ def test_detect_people(handler):
             result.visualization.save(save_path)
             print(f"Visualization saved: {save_path}")
             notebook_display(result.visualization, title="AFTER: Spatial Visual")
+
+        cleanup_memory()
 
     return True
 
@@ -256,8 +261,12 @@ def main():
         if is_oom_error(e):
             print("⚠️ OOM during test execution. Passing.")
             results.append(("OOM Bypass", True))
+            cleanup_memory()
         else:
             raise e
+    
+    cleanup_memory()
+
     
     # Summary
     print(f"\n{'='*60}")

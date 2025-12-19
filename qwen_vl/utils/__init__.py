@@ -1,6 +1,7 @@
 """Utility functions."""
 
 from .logger import get_logger, setup_logging
+from .memory import cleanup_memory
 from .parsers import (
     clean_html,
     extract_key_value_pairs,
@@ -31,4 +32,5 @@ __all__ = [
     "draw_point",
     "draw_points",
     "get_color",
+    "cleanup_memory",
 ]

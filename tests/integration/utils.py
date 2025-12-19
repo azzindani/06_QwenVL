@@ -1,5 +1,13 @@
 from pathlib import Path
 from PIL import Image
+import gc
+import torch
+
+def cleanup_memory():
+    """Force garbage collection and empty CUDA cache."""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 def is_oom_error(e):
     """Check if exception is a GPU Out Of Memory error."""

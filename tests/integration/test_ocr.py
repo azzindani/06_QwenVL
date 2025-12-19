@@ -22,7 +22,8 @@ RESULTS_DIR = Path(__file__).parent.parent / "results"
 
 
 sys.path.append(str(Path(__file__).parent))
-from utils import notebook_display, is_oom_error
+sys.path.append(str(Path(__file__).parent))
+from utils import notebook_display, is_oom_error, cleanup_memory
 
 # Specific assets for OCR testing
 
@@ -184,8 +185,12 @@ def main():
             if is_oom_error(e):
                 print("⚠️ OOM during test execution. Passing.")
                 results.append((f"OOM Bypass - {test_image.name}", True))
+                cleanup_memory()
                 continue
             raise e
+        
+        # Cleanup after each image
+        cleanup_memory()
     
     # Summary
     print(f"\n{'='*60}")
