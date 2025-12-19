@@ -28,43 +28,58 @@ def hex_to_rgb(hex_color: str) -> Tuple[int, int, int]:
 
 def draw_bounding_box(
     image: Image.Image,
-    bbox: Dict[str, int],
+    bbox: Union[Dict[str, int], List[int], Tuple[int, ...]],
     label: Optional[str] = None,
     color: str = "#FF0000",
     width: int = 2,
     font_size: int = 12,
+    input_width: Optional[int] = None,
+    input_height: Optional[int] = None,
 ) -> Image.Image:
     """
     Draw a bounding box on an image.
 
     Args:
         image: PIL Image
-        bbox: Dict with x1, y1, x2, y2 keys
+        bbox: Dict with x1, y1, x2, y2 keys or list/tuple
         label: Optional label text
         color: Box color (hex)
         width: Line width
         font_size: Font size for label
+        input_width: Model input width for coordinate scaling
+        input_height: Model input height for coordinate scaling
 
     Returns:
         Image with bounding box drawn
     """
     # Make a copy to avoid modifying original
     img = image.copy()
+    actual_width, actual_height = img.size
     draw = ImageDraw.Draw(img)
 
     # Get coordinates
     if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
-        coords = [int(v) for v in bbox]
-        x1, y1 = coords[0], coords[1]
+        coords = [float(v) for v in bbox]
     elif isinstance(bbox, dict) and all(k in bbox for k in ["x1", "y1", "x2", "y2"]):
-        coords = [int(bbox["x1"]), int(bbox["y1"]), int(bbox["x2"]), int(bbox["y2"])]
-        x1, y1 = coords[0], coords[1]
+        coords = [float(bbox["x1"]), float(bbox["y1"]), float(bbox["x2"]), float(bbox["y2"])]
     else:
         # Invalid bbox format
         return img
 
+    # Scale coordinates if model input dimensions are provided
+    if input_width and input_height:
+        x1 = int(coords[0] / input_width * actual_width)
+        y1 = int(coords[1] / input_height * actual_height)
+        x2 = int(coords[2] / input_width * actual_width)
+        y2 = int(coords[3] / input_height * actual_height)
+    else:
+        x1, y1, x2, y2 = [int(v) for v in coords]
+
+    # Ensure proper ordering
+    final_coords = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
+
     # Draw rectangle
-    draw.rectangle(coords, outline=color, width=width)
+    draw.rectangle(final_coords, outline=color, width=width)
 
     # Draw label if provided
     if label:
@@ -75,8 +90,8 @@ def draw_bounding_box(
         text_height = text_bbox[3] - text_bbox[1]
 
         # Position above the box
-        text_x = x1
-        text_y = max(0, y1 - text_height - 4)
+        text_x = final_coords[0]
+        text_y = max(0, final_coords[1] - text_height - 4)
 
         # Draw background for text
         draw.rectangle(
@@ -95,6 +110,8 @@ def draw_bounding_boxes(
     boxes: List[Dict[str, Any]],
     width: int = 2,
     font_size: int = 12,
+    input_width: Optional[int] = None,
+    input_height: Optional[int] = None,
 ) -> Image.Image:
     """
     Draw multiple bounding boxes on an image.
@@ -104,6 +121,8 @@ def draw_bounding_boxes(
         boxes: List of dicts with 'bbox' and optional 'label' keys
         width: Line width
         font_size: Font size for labels
+        input_width: Model input width for coordinate scaling
+        input_height: Model input height for coordinate scaling
 
     Returns:
         Image with all bounding boxes drawn
@@ -130,6 +149,8 @@ def draw_bounding_boxes(
             color=color,
             width=width,
             font_size=font_size,
+            input_width=input_width,
+            input_height=input_height,
         )
 
     return img

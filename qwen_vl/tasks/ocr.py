@@ -110,7 +110,12 @@ class OCRHandler(BaseTaskHandler):
         # Create visualization
         vis_image = None
         if boxes:
-            vis_image = draw_bounding_boxes(image, boxes)
+            vis_image = draw_bounding_boxes(
+                image, 
+                boxes,
+                input_width=self.last_input_width,
+                input_height=self.last_input_height
+            )
 
         return TaskResult(
             text=response,
@@ -157,7 +162,12 @@ class OCRHandler(BaseTaskHandler):
         response = self._generate(messages, **kwargs)
 
         boxes = parse_coordinates(response)
-        vis_image = draw_bounding_boxes(img, boxes) if boxes else None
+        vis_image = draw_bounding_boxes(
+            img, 
+            boxes,
+            input_width=self.last_input_width,
+            input_height=self.last_input_height
+        ) if boxes else None
 
         return TaskResult(
             text=response,

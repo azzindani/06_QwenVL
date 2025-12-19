@@ -197,9 +197,20 @@ class DocumentParsingHandler(BaseTaskHandler):
 
         # Parse bboxes from response
         bboxes = parse_html_bboxes(response)
+        
+        # Create visualization
+        vis_image = None
+        if bboxes and self.last_input_width and self.last_input_height:
+            vis_image = draw_document_boxes(
+                img, 
+                bboxes, 
+                self.last_input_width, 
+                self.last_input_height
+            )
 
         return TaskResult(
             text=response,
+            visualization=vis_image,
             data={"bboxes": bboxes, "format": output_format},
             metadata={
                 "mode": "document_parsing",

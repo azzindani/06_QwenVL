@@ -80,7 +80,12 @@ class LayoutHandler(BaseTaskHandler):
         # Create visualization
         vis_image = None
         if elements:
-            vis_image = draw_bounding_boxes(img, elements)
+            vis_image = draw_bounding_boxes(
+                img, 
+                elements, 
+                input_width=self.last_input_width, 
+                input_height=self.last_input_height
+            )
 
         return TaskResult(
             text=response,
@@ -134,7 +139,12 @@ class LayoutHandler(BaseTaskHandler):
             if "title" in section:
                 section["label"] = section["title"]
 
-        vis_image = draw_bounding_boxes(img, sections) if sections else None
+        vis_image = draw_bounding_boxes(
+            img, 
+            sections, 
+            input_width=self.last_input_width, 
+            input_height=self.last_input_height
+        ) if sections else None
 
         return TaskResult(
             text=response,
@@ -188,7 +198,12 @@ class LayoutHandler(BaseTaskHandler):
             if "order" in elem:
                 elem["label"] = f"{elem.get('order', '?')}"
 
-        vis_image = draw_bounding_boxes(img, elements) if elements else None
+        vis_image = draw_bounding_boxes(
+            img, 
+            elements, 
+            input_width=self.last_input_width, 
+            input_height=self.last_input_height
+        ) if elements else None
 
         return TaskResult(
             text=response,
