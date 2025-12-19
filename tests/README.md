@@ -53,6 +53,13 @@ python tests/integration/test_ocr.py
 python tests/integration/test_ocr.py
 ```
 
+### 4. Run in Jupyter Notebook
+To see image previews, use `%run` instead of `!python`:
+
+```python
+%run tests/integration/test_ocr.py
+```
+
 ---
 
 ## Running Tests in Notebook (Jupyter/Kaggle/Colab)
@@ -60,8 +67,8 @@ python tests/integration/test_ocr.py
 To see inline "Before" and "After" image previews, you must run the tests inside the notebook kernel.
 Running as a subprocess (e.g., `!python tests/...`) will **NOT** show images because the subprocess cannot modify the notebook display.
 
-### Correct Way (`%run`)
-Use the `%run` magic command to execute the test script in the current kernel:
+### Correct Way (Magic Command) - RECOMMENDED
+The simplest way to run tests in a notebook cell with image previews is using the `%run` magic command. This runs the script in the current kernel context.
 
 ```python
 %run tests/integration/test_ocr.py
@@ -71,10 +78,39 @@ Use the `%run` magic command to execute the test script in the current kernel:
 Import the `main` function and run it:
 
 ```python
+# 1. OCR Test
 import sys
 from pathlib import Path
 sys.path.append(str(Path.cwd()))
 from tests.integration.test_ocr import main
+main()
+
+# 2. Recognition Test
+from tests.integration.test_recognition import main
+main()
+
+# 3. Spatial Test
+from tests.integration.test_spatial import main
+main()
+
+# 4. Computer Agent Test
+from tests.integration.test_computer_agent import main
+main()
+
+# 5. Mobile Agent Test
+from tests.integration.test_mobile_agent import main
+main()
+
+# 6. Document Parsing Test
+from tests.integration.test_document_parsing import main
+main()
+
+# 7. Layout Analysis Test
+from tests.integration.test_layout import main
+main()
+
+# 8. Extraction Test
+from tests.integration.test_extraction import main
 main()
 ```
 
@@ -100,27 +136,36 @@ Each feature has its own test file with dedicated samples:
 ```bash
 # OCR testing
 python tests/integration/test_ocr.py
+# Jupyter: %run tests/integration/test_ocr.py
+
 
 # Recognition (celebrities, animals, food, scenes)
 python tests/integration/test_recognition.py
+# Jupyter: %run tests/integration/test_recognition.py
 
 # Spatial understanding (detect cars, people, objects)
 python tests/integration/test_spatial.py
+# Jupyter: %run tests/integration/test_spatial.py
 
 # Computer agent (desktop automation)
 python tests/integration/test_computer_agent.py
+# Jupyter: %run tests/integration/test_computer_agent.py
 
 # Mobile agent (English and Chinese screens)
 python tests/integration/test_mobile_agent.py
+# Jupyter: %run tests/integration/test_mobile_agent.py
 
 # Document parsing (HTML extraction)
 python tests/integration/test_document_parsing.py
+# Jupyter: %run tests/integration/test_document_parsing.py
 
 # Layout analysis
 python tests/integration/test_layout.py
+# Jupyter: %run tests/integration/test_layout.py
 
 # All extraction handlers (Table, NER, Form, Invoice, Contract)
 python tests/integration/test_extraction.py
+# Jupyter: %run tests/integration/test_extraction.py
 ```
 
 ---

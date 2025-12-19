@@ -1,6 +1,11 @@
 from pathlib import Path
 from PIL import Image
 
+def is_oom_error(e):
+    """Check if exception is a GPU Out Of Memory error."""
+    msg = str(e).lower()
+    return "out of memory" in msg or "failed to allocate" in msg or "cuda out of memory" in msg
+
 def notebook_display(image, title="Image Preview"):
     """
     Robust image display for Notebook environments (Colab, Kaggle).
