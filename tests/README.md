@@ -50,6 +50,34 @@ cd "d:\AI_Workspace\90_AI_Implementation\New folder\06_QwenVL"
 python tests/integration/test_ocr.py
 ```
 
+python tests/integration/test_ocr.py
+```
+
+---
+
+## Running Tests in Notebook (Jupyter/Kaggle/Colab)
+
+To see inline "Before" and "After" image previews, you must run the tests inside the notebook kernel.
+Running as a subprocess (e.g., `!python tests/...`) will **NOT** show images because the subprocess cannot modify the notebook display.
+
+### Correct Way (`%run`)
+Use the `%run` magic command to execute the test script in the current kernel:
+
+```python
+%run tests/integration/test_ocr.py
+```
+
+### Alternative Way (Import)
+Import the `main` function and run it:
+
+```python
+import sys
+from pathlib import Path
+sys.path.append(str(Path.cwd()))
+from tests.integration.test_ocr import main
+main()
+```
+
 ---
 
 ## Running Individual Feature Tests
