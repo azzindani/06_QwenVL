@@ -138,7 +138,7 @@ class MobileAgentHandler(BaseTaskHandler):
                 role="user",
                 content=[
                     ContentItem(text=user_prompt),
-                    ContentItem(image=image),
+                    ContentItem(image="image_placeholder"), # Use placeholder to avoid validation error
                 ],
             ),
         ]
@@ -149,8 +149,22 @@ class MobileAgentHandler(BaseTaskHandler):
             functions=[mobile_use.function],
         )
         
-        # Convert back to dicts for our internal generator
-        return [msg.model_dump() for msg in processed_messages]
+        # Convert back to dicts for our internal generator and fix image format
+        final_messages = []
+        for msg in processed_messages:
+            msg_dict = msg.model_dump()
+            fixed_content = []
+            for item in msg_dict.get("content", []):
+                if item.get("image") == "image_placeholder":
+                    fixed_content.append({"type": "image", "image": image})
+                elif item.get("text"):
+                    fixed_content.append({"type": "text", "text": item["text"]})
+                else:
+                    fixed_content.append(item)
+            msg_dict["content"] = fixed_content
+            final_messages.append(msg_dict)
+            
+        return final_messages
 
     def process(
         self,
