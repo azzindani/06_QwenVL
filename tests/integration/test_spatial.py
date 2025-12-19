@@ -216,7 +216,8 @@ def main():
         print(f"  ... and {len(samples) - 5} more")
     
     try:
-        from qwen_vl.model_loader import load_config, ModelLoader
+        from qwen_vl.config import load_config
+        from qwen_vl.core.model_loader import ModelLoader
         config = load_config()
         loader = ModelLoader()
         loaded = loader.load(config)
