@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_from_markdown
+from ..utils.parsers import parse_json_from_markdown, extract_malformed_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -130,10 +130,20 @@ class FieldExtractionHandler(BaseTaskHandler):
         if isinstance(fields, dict):
             for field_name, field_data in fields.items():
                 if isinstance(field_data, dict) and "bbox" in field_data:
-                    boxes.append({
-                        "bbox": field_data["bbox"],
-                        "label": field_name,
-                    })
+                    bbox = field_data["bbox"]
+                    # Handle malformed bbox formats
+                    if isinstance(bbox, str):
+                        bbox = extract_malformed_bbox(bbox)
+                    elif isinstance(bbox, dict):
+                        try:
+                            bbox = {k: int(str(v).strip('"\'' )) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
+                        except (ValueError, TypeError):
+                            continue
+                    if bbox:
+                        boxes.append({
+                            "bbox": bbox,
+                            "label": field_name,
+                        })
 
         # Create visualization
         vis_image = draw_bounding_boxes(

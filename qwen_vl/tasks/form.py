@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_from_markdown
+from ..utils.parsers import parse_json_from_markdown, extract_malformed_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -69,27 +69,44 @@ class FormHandler(BaseTaskHandler):
         # Create visualization
         boxes = []
 
+        def parse_bbox(item):
+            """Parse bbox from item, handling malformed formats."""
+            if "bbox" not in item:
+                return None
+            bbox = item["bbox"]
+            if isinstance(bbox, str):
+                return extract_malformed_bbox(bbox)
+            elif isinstance(bbox, dict):
+                try:
+                    return {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
+                except (ValueError, TypeError):
+                    return None
+            return bbox
+
         for field in fields:
-            if "bbox" in field:
+            bbox = parse_bbox(field)
+            if bbox:
                 boxes.append({
-                    "bbox": field["bbox"],
+                    "bbox": bbox,
                     "label": f"{field.get('key', 'field')[:20]}",
                     "color": "#00FF00",
                 })
 
         for checkbox in checkboxes:
-            if "bbox" in checkbox:
+            bbox = parse_bbox(checkbox)
+            if bbox:
                 state = "☑" if checkbox.get("checked", False) else "☐"
                 boxes.append({
-                    "bbox": checkbox["bbox"],
+                    "bbox": bbox,
                     "label": f"{state} {checkbox.get('label', '')[:15]}",
                     "color": "#0000FF",
                 })
 
         for sig in signatures:
-            if "bbox" in sig:
+            bbox = parse_bbox(sig)
+            if bbox:
                 boxes.append({
-                    "bbox": sig["bbox"],
+                    "bbox": bbox,
                     "label": "Signature",
                     "color": "#FF00FF",
                 })

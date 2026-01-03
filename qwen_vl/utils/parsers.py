@@ -86,6 +86,7 @@ def parse_bounding_box(text: str) -> Optional[Dict[str, int]]:
     - [x1, y1, x2, y2]
     - {"x1": 0, "y1": 0, "x2": 100, "y2": 100}
     - (x1, y1, x2, y2)
+    - Malformed: {"x1": 407, y1="648", x2="495", y2="648"}
 
     Args:
         text: Text containing bounding box
@@ -103,7 +104,7 @@ def parse_bounding_box(text: str) -> Optional[Dict[str, int]]:
     except (json.JSONDecodeError, ValueError, TypeError):
         pass
 
-    # Try regex patterns
+    # Try regex patterns for standard formats
     patterns = [
         r"\[(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\]",
         r"\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)",
@@ -121,6 +122,90 @@ def parse_bounding_box(text: str) -> Optional[Dict[str, int]]:
             }
 
     return None
+
+
+def extract_malformed_bbox(text: str) -> Optional[Dict[str, int]]:
+    """
+    Extract bbox coordinates from malformed JSON-like text.
+    
+    Handles formats like:
+    - {"x1": 407, y1="648", x2="495", y2="648"}
+    - {"x1="407, y1="648", x2="495", y2="648"}
+    
+    Args:
+        text: Text containing malformed bbox
+        
+    Returns:
+        Dict with x1, y1, x2, y2 keys or None
+    """
+    result = {}
+    
+    # Pattern to match x1, y1, x2, y2 with various formats
+    # Matches: x1: 100, x1=100, x1="100", "x1": 100, "x1"="100", x1: "100"
+    for key in ["x1", "y1", "x2", "y2"]:
+        patterns = [
+            rf'["\']?{key}["\']?\s*[:=]\s*["\']?(\d+)["\']?',  # x1: 100, x1="100", etc.
+            rf'{key}\s*[:=]\s*(\d+)',  # x1=100, x1: 100
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                result[key] = int(match.group(1))
+                break
+    
+    if len(result) == 4:
+        return result
+    return None
+
+
+def parse_entities_with_bbox(text: str) -> List[Dict[str, Any]]:
+    """
+    Parse entities with bounding boxes from model output, handling malformed JSON.
+    
+    Args:
+        text: Model response text
+        
+    Returns:
+        List of entities with parsed bboxes
+    """
+    results = []
+    
+    # Try standard JSON parsing first
+    json_data = parse_json_from_markdown(text)
+    if json_data and "entities" in json_data:
+        for entity in json_data.get("entities", []):
+            if "bbox" in entity:
+                # Try to parse the bbox if it's still a string or malformed
+                bbox = entity["bbox"]
+                if isinstance(bbox, str):
+                    parsed = extract_malformed_bbox(bbox)
+                    if parsed:
+                        entity["bbox"] = parsed
+                elif isinstance(bbox, dict):
+                    # Already a dict, ensure values are ints
+                    try:
+                        entity["bbox"] = {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
+                    except (ValueError, TypeError):
+                        pass
+                results.append(entity)
+        return results
+    
+    # Fallback: extract entities using regex for malformed JSON
+    # Pattern to find entity blocks
+    entity_pattern = r'\{\s*"text"\s*:\s*"([^"]+)"[^}]*"type"\s*:\s*"([^"]+)"[^}]*"bbox"\s*:\s*\{([^}]+)\}'
+    matches = re.findall(entity_pattern, text, re.DOTALL)
+    
+    for match in matches:
+        text_val, type_val, bbox_str = match
+        bbox = extract_malformed_bbox(bbox_str)
+        if bbox:
+            results.append({
+                "text": text_val,
+                "type": type_val,
+                "bbox": bbox,
+            })
+    
+    return results
 
 
 def parse_spatial_output(text: str) -> List[Dict[str, Any]]:

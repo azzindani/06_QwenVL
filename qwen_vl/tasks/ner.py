@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_array_from_markdown, parse_json_from_markdown
+from ..utils.parsers import parse_json_from_markdown, parse_json_array_from_markdown, parse_entities_with_bbox, extract_malformed_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -71,9 +71,13 @@ class NERHandler(BaseTaskHandler):
         messages = self._build_messages(img, user_prompt)
         response = self._generate(messages, **kwargs)
 
-        # Parse entities
-        data = parse_json_from_markdown(response)
-        entities = data.get("entities", []) if data else []
+        # Parse entities using robust parser that handles malformed JSON
+        entities = parse_entities_with_bbox(response)
+        
+        # Fallback to standard parsing if robust parser returns empty
+        if not entities:
+            data = parse_json_from_markdown(response)
+            entities = data.get("entities", []) if data else []
 
         # Group by type
         entities_by_type = {}
@@ -87,10 +91,15 @@ class NERHandler(BaseTaskHandler):
         boxes = []
         for entity in entities:
             if "bbox" in entity:
-                boxes.append({
-                    "bbox": entity["bbox"],
-                    "label": f"{entity.get('type', '')}: {entity.get('text', '')[:15]}",
-                })
+                bbox = entity["bbox"]
+                # Handle both dict and malformed string bboxes
+                if isinstance(bbox, str):
+                    bbox = extract_malformed_bbox(bbox)
+                if bbox:
+                    boxes.append({
+                        "bbox": bbox,
+                        "label": f"{entity.get('type', '')}: {entity.get('text', '')[:15]}",
+                    })
 
         vis_image = draw_bounding_boxes(
             img, 
