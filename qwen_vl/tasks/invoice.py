@@ -182,13 +182,28 @@ class InvoiceHandler(BaseTaskHandler):
                     f"reported {reported_subtotal:.2f}"
                 )
 
+        def safe_float(val):
+            """Convert a value to float, handling strings and None."""
+            if val is None:
+                return 0.0
+            if isinstance(val, (int, float)):
+                return float(val)
+            if isinstance(val, str):
+                # Remove currency symbols and whitespace
+                cleaned = val.strip().replace('$', '').replace(',', '').replace('€', '').replace('£', '')
+                try:
+                    return float(cleaned) if cleaned else 0.0
+                except ValueError:
+                    return 0.0
+            return 0.0
+
         # Check total = subtotal + tax - discount
         if summary is None:
             summary = {}
-        subtotal = summary.get("subtotal", 0) or 0
-        tax = summary.get("tax", 0) or 0
-        discount = summary.get("discount", 0) or 0
-        total = summary.get("total", 0) or 0
+        subtotal = safe_float(summary.get("subtotal", 0))
+        tax = safe_float(summary.get("tax", 0))
+        discount = safe_float(summary.get("discount", 0))
+        total = safe_float(summary.get("total", 0))
 
         expected_total = subtotal + tax - discount
         if abs(expected_total - total) > 0.01:
@@ -199,9 +214,9 @@ class InvoiceHandler(BaseTaskHandler):
 
         # Validate line items
         for i, item in enumerate(line_items):
-            qty = item.get("quantity", 0) or 0
-            price = item.get("unit_price", 0) or 0
-            amount = item.get("amount", 0) or 0
+            qty = safe_float(item.get("quantity", 0))
+            price = safe_float(item.get("unit_price", 0))
+            amount = safe_float(item.get("amount", 0))
 
             expected = qty * price
             if abs(expected - amount) > 0.01:
