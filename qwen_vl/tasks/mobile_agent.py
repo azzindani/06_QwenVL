@@ -142,11 +142,7 @@ class MobileAgentHandler(BaseTaskHandler):
                 role="user",
                 content=[
                     ContentItem(text=user_prompt),
-                    ContentItem(
-                        image="image_placeholder",
-                        min_pixels=min_pixels,
-                        max_pixels=max_pixels
-                    ), # Use placeholder to avoid validation error
+                    ContentItem(image="image_placeholder"), # Use placeholder to avoid validation error
                 ],
             ),
         ]

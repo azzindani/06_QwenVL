@@ -169,6 +169,8 @@ class InvoiceHandler(BaseTaskHandler):
                 )
 
         # Check total = subtotal + tax - discount
+        if summary is None:
+            summary = {}
         subtotal = summary.get("subtotal", 0) or 0
         tax = summary.get("tax", 0) or 0
         discount = summary.get("discount", 0) or 0
