@@ -82,7 +82,12 @@ class TableHandler(BaseTaskHandler):
         if tables:
             boxes = [{"bbox": t["bbox"], "label": f"Table {i+1}"} for i, t in enumerate(tables) if "bbox" in t]
             if boxes:
-                vis_image = draw_bounding_boxes(img, boxes)
+                vis_image = draw_bounding_boxes(
+                    img, 
+                    boxes,
+                    input_width=self.last_input_width,
+                    input_height=self.last_input_height
+                )
 
         # Convert to CSV if requested
         csv_output = None

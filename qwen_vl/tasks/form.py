@@ -94,7 +94,12 @@ class FormHandler(BaseTaskHandler):
                     "color": "#FF00FF",
                 })
 
-        vis_image = draw_bounding_boxes(img, boxes) if boxes else None
+        vis_image = draw_bounding_boxes(
+            img, 
+            boxes,
+            input_width=self.last_input_width,
+            input_height=self.last_input_height
+        ) if boxes else None
 
         return TaskResult(
             text=response,

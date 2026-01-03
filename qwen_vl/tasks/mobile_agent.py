@@ -132,8 +132,8 @@ class MobileAgentHandler(BaseTaskHandler):
         prompt_builder = NousFnCallPrompt()
         
         # Set default pixel limits to avoid OOM for large screenshots
-        min_pixels = kwargs.get("min_pixels", 512 * 28 * 28)
-        max_pixels = kwargs.get("max_pixels", 1024 * 28 * 28)
+        min_pixels = 512 * 28 * 28
+        max_pixels = 1024 * 28 * 28
 
         # Build standard Message objects
         messages = [
