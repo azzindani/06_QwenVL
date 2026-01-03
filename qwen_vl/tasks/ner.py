@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_from_markdown, parse_json_array_from_markdown, parse_entities_with_bbox, extract_malformed_bbox
+from ..utils.parsers import parse_json_from_markdown, parse_json_array_from_markdown, parse_entities_with_bbox, extract_malformed_bbox, normalize_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -90,11 +90,10 @@ class NERHandler(BaseTaskHandler):
         # Create visualization
         boxes = []
         for entity in entities:
-            if "bbox" in entity:
-                bbox = entity["bbox"]
-                # Handle both dict and malformed string bboxes
-                if isinstance(bbox, str):
-                    bbox = extract_malformed_bbox(bbox)
+            # Check for bbox or bbox_2d
+            bbox_raw = entity.get("bbox") or entity.get("bbox_2d")
+            if bbox_raw:
+                bbox = normalize_bbox(bbox_raw)
                 if bbox:
                     boxes.append({
                         "bbox": bbox,

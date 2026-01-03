@@ -158,6 +158,39 @@ def extract_malformed_bbox(text: str) -> Optional[Dict[str, int]]:
     return None
 
 
+def normalize_bbox(bbox: Any) -> Optional[Dict[str, int]]:
+    """
+    Convert various bbox formats to standard dict format.
+    
+    Handles:
+    - List/tuple: [x1, y1, x2, y2]
+    - Dict: {"x1": 0, "y1": 0, "x2": 100, "y2": 100}
+    - Malformed string: {"x1": 407, y1="648", ...}
+    
+    Args:
+        bbox: Bounding box in various formats
+        
+    Returns:
+        Dict with x1, y1, x2, y2 keys or None
+    """
+    if bbox is None:
+        return None
+    if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
+        try:
+            return {"x1": int(bbox[0]), "y1": int(bbox[1]), "x2": int(bbox[2]), "y2": int(bbox[3])}
+        except (ValueError, TypeError):
+            return None
+    if isinstance(bbox, str):
+        return extract_malformed_bbox(bbox)
+    if isinstance(bbox, dict):
+        if all(k in bbox for k in ["x1", "y1", "x2", "y2"]):
+            try:
+                return {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
+            except (ValueError, TypeError):
+                return None
+    return None
+
+
 def parse_entities_with_bbox(text: str) -> List[Dict[str, Any]]:
     """
     Parse entities with bounding boxes from model output, handling malformed JSON.
@@ -170,25 +203,56 @@ def parse_entities_with_bbox(text: str) -> List[Dict[str, Any]]:
     """
     results = []
     
+    def normalize_bbox(bbox):
+        """Convert various bbox formats to standard dict format."""
+        if bbox is None:
+            return None
+        if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
+            try:
+                return {"x1": int(bbox[0]), "y1": int(bbox[1]), "x2": int(bbox[2]), "y2": int(bbox[3])}
+            except (ValueError, TypeError):
+                return None
+        if isinstance(bbox, str):
+            return extract_malformed_bbox(bbox)
+        if isinstance(bbox, dict):
+            if all(k in bbox for k in ["x1", "y1", "x2", "y2"]):
+                try:
+                    return {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
+                except (ValueError, TypeError):
+                    return None
+        return None
+    
     # Try standard JSON parsing first
     json_data = parse_json_from_markdown(text)
     if json_data and "entities" in json_data:
         for entity in json_data.get("entities", []):
-            if "bbox" in entity:
-                # Try to parse the bbox if it's still a string or malformed
-                bbox = entity["bbox"]
-                if isinstance(bbox, str):
-                    parsed = extract_malformed_bbox(bbox)
-                    if parsed:
-                        entity["bbox"] = parsed
-                elif isinstance(bbox, dict):
-                    # Already a dict, ensure values are ints
-                    try:
-                        entity["bbox"] = {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
-                    except (ValueError, TypeError):
-                        pass
+            # Check for bbox or bbox_2d
+            bbox_raw = entity.get("bbox") or entity.get("bbox_2d")
+            if bbox_raw:
+                bbox = normalize_bbox(bbox_raw)
+                if bbox:
+                    entity["bbox"] = bbox
+                    results.append(entity)
+                else:
+                    # Keep entity even without valid bbox
+                    results.append(entity)
+            else:
                 results.append(entity)
         return results
+    
+    # Try parsing as array of entities
+    json_array = parse_json_array_from_markdown(text)
+    if json_array:
+        for entity in json_array:
+            if isinstance(entity, dict):
+                bbox_raw = entity.get("bbox") or entity.get("bbox_2d")
+                if bbox_raw:
+                    bbox = normalize_bbox(bbox_raw)
+                    if bbox:
+                        entity["bbox"] = bbox
+                results.append(entity)
+        if results:
+            return results
     
     # Fallback: extract entities using regex for malformed JSON
     # Pattern to find entity blocks
@@ -204,6 +268,18 @@ def parse_entities_with_bbox(text: str) -> List[Dict[str, Any]]:
                 "type": type_val,
                 "bbox": bbox,
             })
+    
+    # Also try to find entities with list-format bboxes
+    entity_list_pattern = r'\{\s*"text"\s*:\s*"([^"]+)"[^}]*"type"\s*:\s*"([^"]+)"[^}]*"bbox"\s*:\s*\[(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\]'
+    matches = re.findall(entity_list_pattern, text, re.DOTALL)
+    
+    for match in matches:
+        text_val, type_val, x1, y1, x2, y2 = match
+        results.append({
+            "text": text_val,
+            "type": type_val,
+            "bbox": {"x1": int(x1), "y1": int(y1), "x2": int(x2), "y2": int(y2)},
+        })
     
     return results
 

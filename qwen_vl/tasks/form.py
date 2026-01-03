@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_from_markdown, extract_malformed_bbox
+from ..utils.parsers import parse_json_from_markdown, extract_malformed_bbox, normalize_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -70,18 +70,9 @@ class FormHandler(BaseTaskHandler):
         boxes = []
 
         def parse_bbox(item):
-            """Parse bbox from item, handling malformed formats."""
-            if "bbox" not in item:
-                return None
-            bbox = item["bbox"]
-            if isinstance(bbox, str):
-                return extract_malformed_bbox(bbox)
-            elif isinstance(bbox, dict):
-                try:
-                    return {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
-                except (ValueError, TypeError):
-                    return None
-            return bbox
+            """Parse bbox from item, handling various formats."""
+            bbox_raw = item.get("bbox") or item.get("bbox_2d")
+            return normalize_bbox(bbox_raw)
 
         for field in fields:
             bbox = parse_bbox(field)

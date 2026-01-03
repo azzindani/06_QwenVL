@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
 
-from ..utils.parsers import parse_json_array_from_markdown, parse_json_from_markdown, extract_malformed_bbox
+from ..utils.parsers import parse_json_array_from_markdown, parse_json_from_markdown, extract_malformed_bbox, normalize_bbox
 from ..utils.visualization import draw_bounding_boxes
 from .base import BaseTaskHandler, TaskResult, TaskType, register_handler
 
@@ -82,16 +82,10 @@ class TableHandler(BaseTaskHandler):
         if tables:
             boxes = []
             for i, t in enumerate(tables):
-                if "bbox" in t:
-                    bbox = t["bbox"]
-                    # Handle malformed bbox formats
-                    if isinstance(bbox, str):
-                        bbox = extract_malformed_bbox(bbox)
-                    elif isinstance(bbox, dict):
-                        try:
-                            bbox = {k: int(str(v).strip('"\'')) for k, v in bbox.items() if k in ["x1", "y1", "x2", "y2"]}
-                        except (ValueError, TypeError):
-                            continue
+                # Check for bbox or bbox_2d
+                bbox_raw = t.get("bbox") or t.get("bbox_2d")
+                if bbox_raw:
+                    bbox = normalize_bbox(bbox_raw)
                     if bbox:
                         boxes.append({"bbox": bbox, "label": f"Table {i+1}"})
             if boxes:
