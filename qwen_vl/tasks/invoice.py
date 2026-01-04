@@ -69,6 +69,7 @@ class InvoiceHandler(BaseTaskHandler):
 
         # Create visualization
         boxes = []
+        print(f"[INVOICE] Image size: {img.size}, Model input: ({self.last_input_width}x{self.last_input_height})")
         if data and "bounding_boxes" in data:
             raw_boxes = data["bounding_boxes"]
             for box_data in raw_boxes:
@@ -84,6 +85,7 @@ class InvoiceHandler(BaseTaskHandler):
                         if bbox:
                             boxes.append({"bbox": bbox})
 
+        print(f"[INVOICE] Drawing {len(boxes)} boxes")
         vis_image = draw_bounding_boxes(
             img, 
             boxes,

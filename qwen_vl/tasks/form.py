@@ -68,6 +68,9 @@ class FormHandler(BaseTaskHandler):
 
         # Create visualization
         boxes = []
+        
+        print(f"[FORM] Image size: {img.size}, Model input: ({self.last_input_width}x{self.last_input_height})")
+        print(f"[FORM] Found: {len(fields)} fields, {len(checkboxes)} checkboxes, {len(signatures)} signatures")
 
         def parse_bbox(item):
             """Parse bbox from item, handling various formats."""
@@ -102,6 +105,7 @@ class FormHandler(BaseTaskHandler):
                     "color": "#FF00FF",
                 })
 
+        print(f"[FORM] Drawing {len(boxes)} boxes")
         vis_image = draw_bounding_boxes(
             img, 
             boxes,

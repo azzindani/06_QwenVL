@@ -79,6 +79,7 @@ class TableHandler(BaseTaskHandler):
 
         # Create visualization
         vis_image = None
+        print(f"[TABLE] Image size: {img.size}, Model input: ({self.last_input_width}x{self.last_input_height}), Tables found: {len(tables)}")
         if tables:
             boxes = []
             for i, t in enumerate(tables):
@@ -88,6 +89,8 @@ class TableHandler(BaseTaskHandler):
                     bbox = normalize_bbox(bbox_raw)
                     if bbox:
                         boxes.append({"bbox": bbox, "label": f"Table {i+1}"})
+                        print(f"[TABLE] Table {i+1} bbox: {bbox}")
+            print(f"[TABLE] Drawing {len(boxes)} table boxes")
             if boxes:
                 vis_image = draw_bounding_boxes(
                     img, 

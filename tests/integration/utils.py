@@ -45,14 +45,18 @@ def notebook_display(content, title="Output Preview", is_html=False):
 
         # Handle Path/String
         if isinstance(content, (str, Path)) and not is_html:
-            display(IPImage(filename=str(content), width=600))
+            # Display at larger size to see bbox details
+            display(IPImage(filename=str(content), width=1000))
             
         # Handle PIL Image
         elif hasattr(content, 'save'):
             # Convert PIL to raw PNG bytes
             b = io.BytesIO()
             content.save(b, format='PNG')
-            display(IPImage(data=b.getvalue(), width=600))
+            # Display at larger size to see bbox details
+            # Also show actual dimensions
+            print(f"    Image dimensions: {content.size[0]}x{content.size[1]}")
+            display(IPImage(data=b.getvalue(), width=1000))
         
         # Fallback for text if needed (though print is usually fine)
         elif isinstance(content, str):
