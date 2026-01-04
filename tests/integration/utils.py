@@ -14,7 +14,7 @@ def is_oom_error(e):
     msg = str(e).lower()
     return "out of memory" in msg or "failed to allocate" in msg or "cuda out of memory" in msg
 
-def resize_for_display(img, max_width=800, max_height=800):
+def resize_for_display(img, max_width=1200, max_height=1200):
     """Resize image for display while maintaining aspect ratio."""
     if not hasattr(img, 'size'):
         return img
