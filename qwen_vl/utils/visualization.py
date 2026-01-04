@@ -72,21 +72,25 @@ def draw_bounding_box(
     max_coord = max(coords)
     
     if input_width and input_height:
-        # Check if coordinates seem to be in model's internal coordinate space
-        # or already in actual image pixels
-        model_max = max(input_width, input_height)
-        if max_coord <= model_max * 1.1:
-            # Coordinates are within model input dimensions - scale them
+        # Check if dimensions are nearly identical (within 2%) - skip scaling
+        width_ratio = abs(input_width - actual_width) / max(input_width, actual_width)
+        height_ratio = abs(input_height - actual_height) / max(input_height, actual_height)
+        
+        if width_ratio < 0.02 and height_ratio < 0.02:
+            # Dimensions are nearly identical, no scaling needed
+            x1, y1, x2, y2 = [int(v) for v in coords]
+            print(f"[BBOX] No scaling (dims ~= actual): raw={coords}, used=({x1},{y1},{x2},{y2})")
+        elif max_coord > max(input_width, input_height) * 1.1:
+            # Coordinates are larger than model input - likely already in image pixels
+            x1, y1, x2, y2 = [int(v) for v in coords]
+            print(f"[BBOX] No scaling (coords > model_max): raw={coords}, used=({x1},{y1},{x2},{y2})")
+        else:
+            # Coordinates are in model space - scale to actual image
             x1 = int(coords[0] / input_width * actual_width)
             y1 = int(coords[1] / input_height * actual_height)
             x2 = int(coords[2] / input_width * actual_width)
             y2 = int(coords[3] / input_height * actual_height)
             print(f"[BBOX] Scaling: raw={coords}, input_dim=({input_width}x{input_height}), actual=({actual_width}x{actual_height}), scaled=({x1},{y1},{x2},{y2})")
-        else:
-            # Coordinates are larger than model input - likely already in image pixels
-            # No scaling needed, just use as-is (assuming they're for actual image)
-            x1, y1, x2, y2 = [int(v) for v in coords]
-            print(f"[BBOX] No scaling (coords > model_max {model_max}): raw={coords}, used=({x1},{y1},{x2},{y2})")
     else:
         x1, y1, x2, y2 = [int(v) for v in coords]
         print(f"[BBOX] No input dimensions: raw={coords}, used=({x1},{y1},{x2},{y2})")
