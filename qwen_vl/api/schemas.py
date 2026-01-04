@@ -105,6 +105,7 @@ class OCRResult(BaseModel):
     text: str
     bounding_boxes: Optional[List[Dict[str, Any]]] = None
     word_count: Optional[int] = None
+    visualization: Optional[str] = None  # Base64 encoded image
 
 
 class TableResult(BaseModel):
@@ -112,6 +113,7 @@ class TableResult(BaseModel):
     success: bool
     tables: List[Dict[str, Any]]
     csv_data: Optional[str] = None
+    visualization: Optional[str] = None  # Base64 encoded image
 
 
 class FormResult(BaseModel):
@@ -120,6 +122,7 @@ class FormResult(BaseModel):
     fields: List[Dict[str, Any]]
     checkboxes: List[Dict[str, Any]]
     signatures: List[Dict[str, Any]]
+    visualization: Optional[str] = None  # Base64 encoded image
 
 
 class InvoiceResult(BaseModel):
@@ -130,6 +133,7 @@ class InvoiceResult(BaseModel):
     summary: Dict[str, Any]
     payment: Dict[str, Any]
     validation: Dict[str, Any]
+    visualization: Optional[str] = None  # Base64 encoded image
 
 
 class ContractResult(BaseModel):
@@ -147,6 +151,38 @@ class NERResult(BaseModel):
     success: bool
     entities: List[Dict[str, Any]]
     entity_counts: Dict[str, int]
+    visualization: Optional[str] = None  # Base64 encoded image
+
+
+class LayoutResult(BaseModel):
+    """Layout analysis result."""
+    success: bool
+    elements: List[Dict[str, Any]]
+    element_count: int
+    visualization: Optional[str] = None  # Base64 encoded image
+
+
+class SpatialResult(BaseModel):
+    """Spatial understanding result."""
+    success: bool
+    text: str
+    visualization: Optional[str] = None  # Base64 encoded image
+
+
+class RecognitionResult(BaseModel):
+    """Recognition result."""
+    success: bool
+    text: str
+    data: Optional[Dict[str, Any]] = None
+    visualization: Optional[str] = None  # Base64 encoded image
+
+
+class DocumentParsingResult(BaseModel):
+    """Document parsing result."""
+    success: bool
+    html: str
+    bboxes: List[Dict[str, Any]]
+    visualization: Optional[str] = None  # Base64 encoded image
 
 
 class BatchJobStatus(BaseModel):

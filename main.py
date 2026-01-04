@@ -21,9 +21,31 @@ def main():
         help="Check configuration and exit",
     )
     parser.add_argument(
-        "--no-ui",
+        "--api",
         action="store_true",
-        help="Start without Gradio UI (for API-only mode)",
+        help="Start FastAPI server (API mode)",
+    )
+    parser.add_argument(
+        "--api-port",
+        type=int,
+        default=8000,
+        help="API server port (default: 8000)",
+    )
+    parser.add_argument(
+        "--api-host",
+        type=str,
+        default="0.0.0.0",
+        help="API server host (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--ui",
+        action="store_true",
+        help="Start Gradio UI (default if no mode specified)",
+    )
+    parser.add_argument(
+        "--use-api",
+        action="store_true",
+        help="UI uses API backend instead of direct model calls",
     )
 
     args = parser.parse_args()
@@ -62,24 +84,35 @@ def main():
         print("=" * 60)
         return 0
 
-    # Start the application
-    logger.info("Starting Qwen VL service")
-    logger.info(f"Model: {config.model.model_id}")
-
-    if args.no_ui:
+    # Start API server
+    if args.api:
+        logger.info("Starting Qwen VL API server")
         print("=" * 60)
         print("Qwen VL Service - API Mode")
         print("=" * 60)
-        print("Running without UI. Use --check-hardware or --check-config for diagnostics.")
-        print("To start Gradio UI, run without --no-ui flag.")
+        print(f"Model: {config.model.model_id}")
+        print(f"Server: http://{args.api_host}:{args.api_port}")
+        print("=" * 60)
+
+        from qwen_vl.api.server import run_server
+
+        run_server(
+            host=args.api_host,
+            port=args.api_port,
+        )
         return 0
 
-    # Launch Gradio UI
+    # Start Gradio UI (default)
+    logger.info("Starting Qwen VL service")
+    logger.info(f"Model: {config.model.model_id}")
+
     print("=" * 60)
     print("Qwen VL Service - Starting Gradio UI")
     print("=" * 60)
     print(f"Model: {config.model.model_id}")
     print(f"Server: http://{config.server.host}:{config.server.port}")
+    if args.use_api:
+        print(f"Using API backend: http://localhost:{args.api_port}")
     print("=" * 60)
 
     from qwen_vl.ui.gradio_app import launch_app
@@ -95,4 +128,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
