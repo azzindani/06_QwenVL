@@ -211,16 +211,19 @@ class InvoiceHandler(BaseTaskHandler):
             )
 
         # Validate line items
-        for i, item in enumerate(line_items):
-            qty = safe_float(item.get("quantity", 0))
-            price = safe_float(item.get("unit_price", 0))
-            amount = safe_float(item.get("amount", 0))
+        if line_items and isinstance(line_items, list):
+            for i, item in enumerate(line_items):
+                if not isinstance(item, dict):
+                    continue
+                qty = safe_float(item.get("quantity", 0))
+                price = safe_float(item.get("unit_price", 0))
+                amount = safe_float(item.get("amount", 0))
 
-            expected = qty * price
-            if abs(expected - amount) > 0.01:
-                warnings.append(
-                    f"Line {i+1}: qty*price ({expected:.2f}) != amount ({amount:.2f})"
-                )
+                expected = qty * price
+                if abs(expected - amount) > 0.01:
+                    warnings.append(
+                        f"Line {i+1}: qty*price ({expected:.2f}) != amount ({amount:.2f})"
+                    )
 
         return {
             "is_valid": len(errors) == 0,

@@ -64,6 +64,7 @@ def draw_bounding_box(
         coords = [float(bbox["x1"]), float(bbox["y1"]), float(bbox["x2"]), float(bbox["y2"])]
     else:
         # Invalid bbox format
+        print(f"[BBOX] Invalid format: {bbox}")
         return img
 
     # Determine if scaling is needed based on coordinate values
@@ -73,18 +74,22 @@ def draw_bounding_box(
     if input_width and input_height:
         # Check if coordinates seem to be in model's internal coordinate space
         # or already in actual image pixels
-        if max_coord <= max(input_width, input_height) * 1.1:
+        model_max = max(input_width, input_height)
+        if max_coord <= model_max * 1.1:
             # Coordinates are within model input dimensions - scale them
             x1 = int(coords[0] / input_width * actual_width)
             y1 = int(coords[1] / input_height * actual_height)
             x2 = int(coords[2] / input_width * actual_width)
             y2 = int(coords[3] / input_height * actual_height)
+            print(f"[BBOX] Scaling: raw={coords}, input_dim=({input_width}x{input_height}), actual=({actual_width}x{actual_height}), scaled=({x1},{y1},{x2},{y2})")
         else:
             # Coordinates are larger than model input - likely already in image pixels
             # No scaling needed, just use as-is (assuming they're for actual image)
             x1, y1, x2, y2 = [int(v) for v in coords]
+            print(f"[BBOX] No scaling (coords > model_max {model_max}): raw={coords}, used=({x1},{y1},{x2},{y2})")
     else:
         x1, y1, x2, y2 = [int(v) for v in coords]
+        print(f"[BBOX] No input dimensions: raw={coords}, used=({x1},{y1},{x2},{y2})")
 
     # Ensure proper ordering
     final_coords = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
