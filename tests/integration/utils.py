@@ -71,10 +71,13 @@ def notebook_display(content, title="Output Preview", is_html=False):
         # Handle PIL Image
         elif hasattr(content, 'save'):
             # Resize for display
+            orig_w, orig_h = content.size
             resized = resize_for_display(content)
+            disp_w, disp_h = resized.size
+            scale = disp_w / orig_w
             b = io.BytesIO()
             resized.save(b, format='PNG')
-            print(f"    Original: {content.size}, Display: {resized.size}")
+            print(f"    Original: {orig_w}x{orig_h}, Display: {disp_w}x{disp_h}, Scale: {scale:.3f}")
             display(IPImage(data=b.getvalue()))
         
         # Fallback for text if needed (though print is usually fine)

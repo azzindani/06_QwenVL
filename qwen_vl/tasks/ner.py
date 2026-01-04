@@ -117,6 +117,9 @@ class NERHandler(BaseTaskHandler):
             input_width=self.last_input_width,
             input_height=self.last_input_height
         ) if boxes else None
+        
+        if vis_image:
+            print(f"[NER] Visualization size: {vis_image.size} (should match original: {img.size})")
 
         return TaskResult(
             text=response,
