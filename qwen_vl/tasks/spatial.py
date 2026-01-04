@@ -64,7 +64,7 @@ def draw_spatial_boxes(
         Image with drawn bounding boxes
     """
     img = image.copy()
-    width, height = img.size
+    actual_width, actual_height = img.size
     draw = ImageDraw.Draw(img)
 
     colors = [
@@ -74,6 +74,13 @@ def draw_spatial_boxes(
 
     # Parse boxes using robust utility
     boxes = parse_spatial_output(bounding_boxes)
+    
+    # Check if dimensions are nearly identical (within 2%) - skip scaling
+    width_ratio = abs(input_width - actual_width) / max(input_width, actual_width) if input_width else 1
+    height_ratio = abs(input_height - actual_height) / max(input_height, actual_height) if input_height else 1
+    skip_scaling = width_ratio < 0.02 and height_ratio < 0.02
+    
+    print(f"[SPATIAL] Image: {actual_width}x{actual_height}, Model: {input_width}x{input_height}, Skip scaling: {skip_scaling}")
 
     # Try to load a font, fall back to default
     try:
@@ -89,10 +96,15 @@ def draw_spatial_boxes(
         bbox = box["bbox_2d"]
 
         # Convert coordinates
-        abs_x1 = int(bbox[0] / input_width * width)
-        abs_y1 = int(bbox[1] / input_height * height)
-        abs_x2 = int(bbox[2] / input_width * width)
-        abs_y2 = int(bbox[3] / input_height * height)
+        if skip_scaling:
+            abs_x1, abs_y1, abs_x2, abs_y2 = [int(b) for b in bbox]
+            print(f"[SPATIAL] No scaling: raw={bbox}, used=({abs_x1},{abs_y1},{abs_x2},{abs_y2})")
+        else:
+            abs_x1 = int(bbox[0] / input_width * actual_width)
+            abs_y1 = int(bbox[1] / input_height * actual_height)
+            abs_x2 = int(bbox[2] / input_width * actual_width)
+            abs_y2 = int(bbox[3] / input_height * actual_height)
+            print(f"[SPATIAL] Scaling: raw={bbox}, scaled=({abs_x1},{abs_y1},{abs_x2},{abs_y2})")
 
         # Ensure proper ordering
         if abs_x1 > abs_x2:
@@ -129,13 +141,18 @@ def draw_points(
         Image with drawn points
     """
     img = image.copy()
-    width, height = img.size
+    actual_width, actual_height = img.size
     draw = ImageDraw.Draw(img)
 
     colors = ["red", "green", "blue", "yellow", "orange", "pink", "purple"]
 
     points = points_data.get("points", [])
     description = points_data.get("phrase", "")
+    
+    # Check if dimensions are nearly identical (within 2%) - skip scaling
+    width_ratio = abs(input_width - actual_width) / max(input_width, actual_width) if input_width else 1
+    height_ratio = abs(input_height - actual_height) / max(input_height, actual_height) if input_height else 1
+    skip_scaling = width_ratio < 0.02 and height_ratio < 0.02
 
     try:
         font = ImageFont.truetype("arial.ttf", size=14)
@@ -144,8 +161,16 @@ def draw_points(
 
     for i, point in enumerate(points):
         color = colors[i % len(colors)]
-        abs_x = int(float(point[0])) / input_width * width
-        abs_y = int(float(point[1])) / input_height * height
+        raw_x = float(point[0])
+        raw_y = float(point[1])
+        
+        if skip_scaling:
+            abs_x = int(raw_x)
+            abs_y = int(raw_y)
+        else:
+            abs_x = int(raw_x / input_width * actual_width)
+            abs_y = int(raw_y / input_height * actual_height)
+        
         radius = 5
 
         draw.ellipse(

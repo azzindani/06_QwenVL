@@ -70,6 +70,8 @@ class LayoutHandler(BaseTaskHandler):
 
         # Parse layout elements
         elements = parse_coordinates(response)
+        
+        print(f"[LAYOUT] Image: {img.size}, Model input: ({self.last_input_width}x{self.last_input_height}), Elements: {len(elements)}")
 
         # Add labels based on type
         for elem in elements:
@@ -86,6 +88,8 @@ class LayoutHandler(BaseTaskHandler):
                 input_width=self.last_input_width, 
                 input_height=self.last_input_height
             )
+            if vis_image:
+                print(f"[LAYOUT] Visualization size: {vis_image.size}")
 
         return TaskResult(
             text=response,

@@ -106,6 +106,8 @@ class OCRHandler(BaseTaskHandler):
 
         # Parse bounding boxes
         boxes = parse_coordinates(response)
+        
+        print(f"[OCR] Image: {image.size}, Model input: ({self.last_input_width}x{self.last_input_height}), Boxes: {len(boxes)}")
 
         # Create visualization
         vis_image = None
@@ -116,6 +118,8 @@ class OCRHandler(BaseTaskHandler):
                 input_width=self.last_input_width,
                 input_height=self.last_input_height
             )
+            if vis_image:
+                print(f"[OCR] Visualization size: {vis_image.size}")
 
         return TaskResult(
             text=response,
