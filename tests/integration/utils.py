@@ -14,6 +14,22 @@ def is_oom_error(e):
     msg = str(e).lower()
     return "out of memory" in msg or "failed to allocate" in msg or "cuda out of memory" in msg
 
+def resize_for_display(img, max_width=800, max_height=800):
+    """Resize image for display while maintaining aspect ratio."""
+    if not hasattr(img, 'size'):
+        return img
+    
+    width, height = img.size
+    if width <= max_width and height <= max_height:
+        return img
+    
+    # Calculate scale factor
+    scale = min(max_width / width, max_height / height)
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    
+    return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
 def notebook_display(content, title="Output Preview", is_html=False):
     """
     Robust display for Notebook environments (Colab, Kaggle).
@@ -45,18 +61,21 @@ def notebook_display(content, title="Output Preview", is_html=False):
 
         # Handle Path/String
         if isinstance(content, (str, Path)) and not is_html:
-            # Display at larger size to see bbox details
-            display(IPImage(filename=str(content), width=1000))
+            img = Image.open(str(content))
+            resized = resize_for_display(img)
+            b = io.BytesIO()
+            resized.save(b, format='PNG')
+            print(f"    Original: {img.size}, Display: {resized.size}")
+            display(IPImage(data=b.getvalue()))
             
         # Handle PIL Image
         elif hasattr(content, 'save'):
-            # Convert PIL to raw PNG bytes
+            # Resize for display
+            resized = resize_for_display(content)
             b = io.BytesIO()
-            content.save(b, format='PNG')
-            # Display at larger size to see bbox details
-            # Also show actual dimensions
-            print(f"    Image dimensions: {content.size[0]}x{content.size[1]}")
-            display(IPImage(data=b.getvalue(), width=1000))
+            resized.save(b, format='PNG')
+            print(f"    Original: {content.size}, Display: {resized.size}")
+            display(IPImage(data=b.getvalue()))
         
         # Fallback for text if needed (though print is usually fine)
         elif isinstance(content, str):
