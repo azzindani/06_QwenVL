@@ -59,6 +59,9 @@ class NERHandler(BaseTaskHandler):
             TaskResult with extracted entities
         """
         img = self._load_image(image)
+        
+        # Debug: Print original image size
+        print(f"[NER] Original image size: {img.size}")
 
         # Filter entity types
         if entity_types:
@@ -70,6 +73,9 @@ class NERHandler(BaseTaskHandler):
 
         messages = self._build_messages(img, user_prompt)
         response = self._generate(messages, **kwargs)
+        
+        # Debug: Print model input dimensions
+        print(f"[NER] Model input dimensions: ({self.last_input_width}x{self.last_input_height})")
 
         # Parse entities using robust parser that handles malformed JSON
         entities = parse_entities_with_bbox(response)
@@ -78,6 +84,8 @@ class NERHandler(BaseTaskHandler):
         if not entities:
             data = parse_json_from_markdown(response)
             entities = data.get("entities", []) if data else []
+        
+        print(f"[NER] Found {len(entities)} entities")
 
         # Group by type
         entities_by_type = {}
@@ -99,6 +107,9 @@ class NERHandler(BaseTaskHandler):
                         "bbox": bbox,
                         "label": f"{entity.get('type', '')}: {entity.get('text', '')[:15]}",
                     })
+                    print(f"[NER] Entity bbox: {bbox} for '{entity.get('text', '')[:20]}'")
+        
+        print(f"[NER] Drawing {len(boxes)} boxes on image size {img.size}")
 
         vis_image = draw_bounding_boxes(
             img, 
@@ -118,6 +129,8 @@ class NERHandler(BaseTaskHandler):
             metadata={
                 "entity_count": len(entities),
                 "type_count": len(entities_by_type),
+                "image_size": img.size,
+                "model_input_size": (self.last_input_width, self.last_input_height),
             },
         )
 
