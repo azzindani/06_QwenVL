@@ -24,10 +24,13 @@ def parse_html_bboxes(html_content: str) -> List[Dict[str, Any]]:
     try:
         from bs4 import BeautifulSoup
     except ImportError:
+        print("[DOCPARSE] BeautifulSoup not installed, cannot parse HTML bboxes")
         return []
 
     soup = BeautifulSoup(html_content, "html.parser")
     elements = soup.find_all(attrs={"data-bbox": True})
+    
+    print(f"[DOCPARSE] Found {len(elements)} elements with data-bbox attribute")
 
     bboxes = []
     for el in elements:
@@ -47,8 +50,10 @@ def parse_html_bboxes(html_content: str) -> List[Dict[str, Any]]:
                     "tag": el.name,
                 })
         except ValueError:
+            print(f"[DOCPARSE] Failed to parse bbox: {bbox_str}")
             continue
 
+    print(f"[DOCPARSE] Successfully parsed {len(bboxes)} bboxes")
     return bboxes
 
 
@@ -71,7 +76,7 @@ def draw_document_boxes(
         Image with drawn bounding boxes
     """
     img = image.copy()
-    width, height = img.size
+    actual_width, actual_height = img.size
     draw = ImageDraw.Draw(img)
 
     try:
@@ -79,18 +84,27 @@ def draw_document_boxes(
     except Exception:
         font = ImageFont.load_default()
 
-    scale_x = input_width / width
-    scale_y = input_height / height
+    print(f"[DOCPARSE] Drawing {len(bboxes)} boxes, input_dim=({input_width}x{input_height}), actual=({actual_width}x{actual_height})")
 
     for bbox_data in bboxes:
         coords = bbox_data["bbox"]
         text = bbox_data.get("text", "")[:30]  # Truncate long text
-
-        # Scale coordinates
-        x1 = int(coords[0] / scale_x)
-        y1 = int(coords[1] / scale_y)
-        x2 = int(coords[2] / scale_x)
-        y2 = int(coords[3] / scale_y)
+        
+        # Check if coordinates are already in actual image pixels or need scaling
+        max_coord = max(coords)
+        model_max = max(input_width, input_height)
+        
+        if max_coord <= model_max * 1.1:
+            # Coordinates are in model space - scale to actual image
+            x1 = int(coords[0] / input_width * actual_width)
+            y1 = int(coords[1] / input_height * actual_height)
+            x2 = int(coords[2] / input_width * actual_width)
+            y2 = int(coords[3] / input_height * actual_height)
+            print(f"[DOCPARSE] Scaling: raw={coords}, scaled=({x1},{y1},{x2},{y2})")
+        else:
+            # Coordinates are larger than model input, likely already in image pixels
+            x1, y1, x2, y2 = [int(c) for c in coords]
+            print(f"[DOCPARSE] No scaling: raw={coords}, used=({x1},{y1},{x2},{y2})")
 
         # Ensure proper ordering
         if x1 > x2:
@@ -195,6 +209,10 @@ class DocumentParsingHandler(BaseTaskHandler):
         )
         response = self._generate(messages, **kwargs)
 
+        # Debug: Check if response contains data-bbox
+        has_data_bbox = "data-bbox" in response
+        print(f"[DOCPARSE] Response length={len(response)}, has data-bbox={has_data_bbox}, input_dims=({self.last_input_width}x{self.last_input_height})")
+
         # Parse bboxes from response
         bboxes = parse_html_bboxes(response)
         
@@ -207,6 +225,8 @@ class DocumentParsingHandler(BaseTaskHandler):
                 self.last_input_width, 
                 self.last_input_height
             )
+        else:
+            print(f"[DOCPARSE] No visualization: bboxes={len(bboxes)}, input_width={self.last_input_width}, input_height={self.last_input_height}")
 
         return TaskResult(
             text=response,
