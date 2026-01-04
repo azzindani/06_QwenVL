@@ -106,8 +106,8 @@ class InvoiceHandler(BaseTaskHandler):
             visualization=vis_image,
             metadata={
                 "document_type": document_type,
-                "item_count": len(line_items),
-                "is_valid": validation.get("is_valid", False),
+                "item_count": len(line_items) if line_items else 0,
+                "is_valid": validation.get("is_valid", False) if validation else False,
             },
         )
 
